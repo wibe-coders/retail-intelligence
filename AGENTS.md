@@ -50,3 +50,10 @@ When the worktree is clean during a long task, run `git pull --rebase origin mai
 new phase. Never stash or discard work merely to force a rebase. The runner performs the mandatory
 final rebase after committing the result.
 
+## Git publishing
+
+Never push `main`, `master`, the remote default branch, or any branch the repository uses as its
+mainline. The repository owner is the only person who pushes mainline branches. Codex may commit
+locally and may push an explicitly named non-mainline branch. If completing a request would require
+a mainline push, stop after the commit or feature-branch push and give the owner the exact command to
+run.
