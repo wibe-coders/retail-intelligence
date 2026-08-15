@@ -46,6 +46,22 @@ from retail_intelligence.domain.query import Answer, AnswerState
 The `__all__` list in each domain subpackage is the intentional public API. Names in the private
 `domain._base` module are implementation details.
 
+## Evidence storage boundary
+
+The protocols in `retail_intelligence.ports.storage` separate source, evidence-window,
+observation/event, pipeline-run, and citation persistence from infrastructure choices. The
+`InMemoryEvidenceStorage` adapter is intended for deterministic tests and the one-camera experiment;
+it is not a production database. Saving an equal record under the same identifier is idempotent,
+while reusing that identifier with different content raises `ConflictingRecordError`. Temporal
+queries require an exact store/camera/recording reference and a UTC half-open time range.
+
+```python
+from retail_intelligence.adapters.storage import InMemoryEvidenceStorage
+
+storage = InMemoryEvidenceStorage()
+storage.save_source(source)
+```
+
 ## Implement Linear issues with Codex cloud
 
 The repository uses the native Codex for Linear integration. Assigning a Linear issue to Codex or
