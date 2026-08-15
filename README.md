@@ -8,7 +8,10 @@ redistribution.
 ## Visual-token budget validation
 
 `retail_intelligence.evaluate_inference_budget(width, height, selected_frames)` evaluates the final
-model-input dimensions and actual selected frame count before RT-VLM inference. It accepts budgets
+model-input dimensions and actual selected frame count before RT-VLM inference. The caption port and
+NVIDIA adapter enforce that check both on the planned sample and on the realized preprocessed tensor,
+record the resulting budget with the stage outcome, and preserve partial or gap outcomes when source
+frames are missing without duplicating frames. It accepts budgets
 from 4,096 through 16,384 visual tokens and reports `below_minimum` or `above_maximum` otherwise.
 Non-positive inputs raise `ValueError`.
 
