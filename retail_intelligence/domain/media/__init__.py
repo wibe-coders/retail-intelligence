@@ -4,7 +4,13 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from enum import Enum
 
-from .._base import DomainModel, register_enum, register_model, require_text
+from .._base import (
+    DomainModel,
+    register_enum,
+    register_model,
+    require_non_negative_integer,
+    require_text,
+)
 
 
 @register_enum
@@ -48,9 +54,9 @@ class FrameRange(DomainModel):
     end: int
 
     def __post_init__(self) -> None:
-        if isinstance(self.start, bool) or self.start < 0:
-            raise ValueError("frame start must be a non-negative integer")
-        if isinstance(self.end, bool) or self.end <= self.start:
+        require_non_negative_integer(self.start, "frame start")
+        require_non_negative_integer(self.end, "frame end")
+        if self.end <= self.start:
             raise ValueError("frame end must be after frame start")
 
 
@@ -85,7 +91,15 @@ class Source(DomainModel):
         require_text(self.source_id, "source_id")
         require_text(self.media_locator, "media_locator")
         require_text(self.codec, "codec")
-        if self.width <= 0 or self.height <= 0 or self.nominal_frame_rate <= 0:
+        require_non_negative_integer(self.width, "source width")
+        require_non_negative_integer(self.height, "source height")
+        if (
+            self.width == 0
+            or self.height == 0
+            or isinstance(self.nominal_frame_rate, bool)
+            or not isinstance(self.nominal_frame_rate, (int, float))
+            or self.nominal_frame_rate <= 0
+        ):
             raise ValueError("source dimensions and frame rate must be positive")
         if not isinstance(self.retention_class, RetentionClass):
             object.__setattr__(self, "retention_class", RetentionClass(self.retention_class))
@@ -108,15 +122,33 @@ class EvidenceWindow(DomainModel):
         require_text(self.window_id, "window_id")
         require_text(self.pipeline_version, "pipeline_version")
         require_text(self.configuration_id, "configuration_id")
-        if self.expected_frame_count < 0 or self.observed_frame_count < 0:
-            raise ValueError("frame counts cannot be negative")
+        require_non_negative_integer(self.expected_frame_count, "expected_frame_count")
+        require_non_negative_integer(self.observed_frame_count, "observed_frame_count")
         if self.observed_frame_count > self.expected_frame_count:
             raise ValueError("observed frames cannot exceed expected frames")
         if not isinstance(self.completeness, Completeness):
             object.__setattr__(self, "completeness", Completeness(self.completeness))
 
 
+        if self.completeness is Completeness.COMPLETE and (
+            self.expected_frame_count == 0
+            or self.observed_frame_count != self.expected_frame_count
+        ):
+            raise ValueError("complete windows require every expected frame")
+        if self.completeness is Completeness.PARTIAL and not (
+            0 < self.observed_frame_count < self.expected_frame_count
+        ):
+            raise ValueError("partial windows require some but not all expected frames")
+        if self.completeness is Completeness.GAP and self.observed_frame_count != 0:
+            raise ValueError("gap windows cannot contain observed frames")
+
+
 __all__ = [
-    "Completeness", "EvidenceWindow", "FrameRange", "RetentionClass", "Source",
-    "SourceReference", "TimeRange",
+    "Completeness",
+    "EvidenceWindow",
+    "FrameRange",
+    "RetentionClass",
+    "Source",
+    "SourceReference",
+    "TimeRange",
 ]

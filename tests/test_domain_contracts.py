@@ -5,9 +5,11 @@ from datetime import datetime, timedelta, timezone
 
 from retail_intelligence.domain.intelligence import (
     EvidenceLink,
+    EvidenceRecord,
     IntelligenceContext,
     Observation,
     ObservationKind,
+    PersistenceState,
     PipelineProvenance,
 )
 from retail_intelligence.domain.media import (
@@ -55,7 +57,12 @@ class DomainContractTests(unittest.TestCase):
                 TimeRange(start, end)
 
     def test_required_source_identifiers_fail_visibly(self) -> None:
-        for values in (("", "camera", "recording"), ("store", " ", "recording"), ("store", "camera", "")):
+        invalid_identifiers = (
+            ("", "camera", "recording"),
+            ("store", " ", "recording"),
+            ("store", "camera", ""),
+        )
+        for values in invalid_identifiers:
             with self.subTest(values=values), self.assertRaises(ValueError):
                 SourceReference(*values)
 
@@ -68,6 +75,26 @@ class DomainContractTests(unittest.TestCase):
 
         self.assertEqual(EvidenceWindow.from_json(serialized), window)
         self.assertIsInstance(json.loads(serialized), dict)
+
+    def test_completeness_must_match_observed_frame_counts(self) -> None:
+        invalid_states = (
+            (300, 299, Completeness.COMPLETE),
+            (300, 300, Completeness.PARTIAL),
+            (300, 1, Completeness.GAP),
+        )
+        for expected, observed, completeness in invalid_states:
+            with self.subTest(completeness=completeness), self.assertRaises(ValueError):
+                EvidenceWindow(
+                    "window-6",
+                    self.source,
+                    self.interval,
+                    None,
+                    expected,
+                    observed,
+                    "pipeline-1",
+                    "config-4",
+                    completeness,
+                )
 
     def test_caption_is_an_observation_with_complete_provenance(self) -> None:
         caption = Observation(
@@ -93,6 +120,71 @@ class DomainContractTests(unittest.TestCase):
             IntelligenceContext(
                 self.source, self.provenance, (self.evidence,), 1.01,
                 self.start, RetentionClass.TRANSIENT,
+            )
+        for confidence in (float("nan"), float("inf")):
+            with self.subTest(confidence=confidence), self.assertRaises(ValueError):
+                IntelligenceContext(
+                    self.source,
+                    self.provenance,
+                    (self.evidence,),
+                    confidence,
+                    self.start,
+                    RetentionClass.TRANSIENT,
+                )
+
+    def test_evidence_record_preserves_partial_stage_and_storage_status(self) -> None:
+        window = EvidenceWindow(
+            "window-6",
+            self.source,
+            self.interval,
+            None,
+            300,
+            250,
+            "pipeline-1",
+            "config-4",
+            Completeness.PARTIAL,
+        )
+        caption = Observation(
+            "observation-7",
+            ObservationKind.CAPTION,
+            "A person enters the aisle.",
+            self.context,
+            "vendor-output://7",
+        )
+        record = EvidenceRecord(
+            window,
+            (caption,),
+            (),
+            ("tracking",),
+            PersistenceState.STORED,
+            PersistenceState.PENDING,
+            None,
+        )
+
+        self.assertEqual(EvidenceRecord.from_json(record.to_json()), record)
+        self.assertEqual(record.missing_stages, ("tracking",))
+
+    def test_complete_evidence_record_rejects_missing_stages(self) -> None:
+        window = EvidenceWindow(
+            "window-6",
+            self.source,
+            self.interval,
+            None,
+            300,
+            300,
+            "pipeline-1",
+            "config-4",
+            Completeness.COMPLETE,
+        )
+        with self.assertRaises(ValueError):
+            EvidenceRecord(
+                window,
+                (),
+                (),
+                ("captioning",),
+                PersistenceState.STORED,
+                PersistenceState.PENDING,
+                None,
             )
 
     def test_answer_states_encode_support_and_each_abstention(self) -> None:
