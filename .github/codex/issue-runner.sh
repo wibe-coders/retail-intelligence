@@ -175,6 +175,10 @@ rebase_and_push() {
     write_state partial "Refusing to push unexpected branch: $branch"
     return 1
   }
+  if [[ $(git branch --show-current) != "$branch" ]]; then
+    write_state partial "Refusing to push because the checked-out branch is not $branch."
+    return 1
+  fi
 
   if ! git pull --rebase origin main; then
     git rebase --abort >/dev/null 2>&1 || true

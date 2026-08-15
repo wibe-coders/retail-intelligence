@@ -25,3 +25,7 @@ The runner is named `retail-intelligence-codex-ec2` and requires the custom
 on the disposable EC2 host. The workflow does not pass a GitHub token to Codex; only the publishing
 step receives one. Do not target this runner from pull-request workflows or workflows editable by
 untrusted contributors.
+
+Codex must never push `main` or another mainline branch. It may commit locally and push named feature
+branches; the repository owner promotes changes to `main`. The EC2 publisher independently enforces
+the `codex/issue-N` branch shape and refuses to push when any other branch is checked out.
