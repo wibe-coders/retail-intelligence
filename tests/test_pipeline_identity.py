@@ -124,6 +124,18 @@ class PipelineIdentityTests(unittest.TestCase):
 
         self.assertIn("design=compact", canonical)
 
+    def test_signed_url_resource_path_remains_identity_bearing(self) -> None:
+        first = {"media_url": "https://media.test/first?X-Amz-Signature=secret"}
+        second = {"media_url": "https://media.test/second?X-Amz-Signature=secret"}
+
+        first_canonical = canonical_configuration_json(first)
+        self.assertIn("https://media.test/first", first_canonical)
+        self.assertNotIn("X-Amz-Signature", first_canonical)
+        self.assertNotEqual(
+            self.identity(configuration=first).identity_digest,
+            self.identity(configuration=second).identity_digest,
+        )
+
     def test_invalid_configuration_error_and_traceback_do_not_echo_input(self) -> None:
         sensitive_value = "do-not-print-this"
 
