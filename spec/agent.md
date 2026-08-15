@@ -17,9 +17,10 @@ is missing or conflicting, the system says so instead of filling the gap.
 
 ### First release
 
-- Import recorded video and connect a small set of RTSP cameras.
-- Find people and objects, correlate tracks across cameras, and derive occupancy, flow, dwell, and
-  zone entry/exit events.
+- Import recorded video and connect one RTSP camera. Additional cameras remain a later capacity
+  milestone rather than an experimental baseline requirement.
+- Find people and objects in that camera and derive occupancy, flow, dwell, and zone entry/exit
+  events. Cross-camera correlation starts after the one-camera baseline.
 - Search, summarize, and ask questions over a selected store and time range.
 - Return an answer with playable evidence clips and the source camera and timestamps.
 - Show ingestion, analysis, and indexing status in the web app.
@@ -177,7 +178,8 @@ metadata. Evidence access is authorized at request time; possession of a clip UR
 1. Prove the single-device vertical slice: one file, one question, one cited clip.
 2. Add normalized observations, deterministic events, and component evaluations.
 3. Add durable jobs, RTSP ingestion, bounded queues, and restart recovery.
-4. Add multi-camera correlation and store/time/zone query filters.
+4. Add a second camera, multi-camera correlation, and store/time/zone query filters after the
+   one-camera stack passes its capacity gates.
 5. Build and lock the real-store evaluation set, then measure capacity and release readiness.
 
 ## Decisions still owned by the team

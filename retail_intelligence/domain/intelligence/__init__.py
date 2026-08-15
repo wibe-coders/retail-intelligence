@@ -37,6 +37,33 @@ class PersistenceState(str, Enum):
     FAILED = "failed"
 
 
+@register_enum
+class PipelineRunState(str, Enum):
+    QUEUED = "queued"
+    RUNNING = "running"
+    SUCCEEDED = "succeeded"
+    FAILED = "failed"
+    CANCELLED = "cancelled"
+
+
+@register_model
+@dataclass(frozen=True, slots=True)
+class PipelineRun(DomainModel):
+    pipeline_run_id: str
+    source: SourceReference
+    time_range: TimeRange
+    pipeline_version: str
+    configuration_id: str
+    state: PipelineRunState
+
+    def __post_init__(self) -> None:
+        require_text(self.pipeline_run_id, "pipeline_run_id")
+        require_text(self.pipeline_version, "pipeline_version")
+        require_text(self.configuration_id, "configuration_id")
+        if not isinstance(self.state, PipelineRunState):
+            object.__setattr__(self, "state", PipelineRunState(self.state))
+
+
 @register_model
 @dataclass(frozen=True, slots=True)
 class PipelineProvenance(DomainModel):
@@ -218,5 +245,7 @@ __all__ = [
     "Observation",
     "ObservationKind",
     "PersistenceState",
+    "PipelineRun",
+    "PipelineRunState",
     "PipelineProvenance",
 ]
