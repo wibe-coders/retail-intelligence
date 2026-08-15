@@ -1,0 +1,17 @@
+{
+  "model": {"name": "rt-detr", "version": "1.4.0"},
+  "configuration": {"id": "cv-config-7", "values": {"threshold": "0.35"}},
+  "run_id": "run-12",
+  "retention_class": "standard",
+  "created_at": "2026-08-15T07:00:11Z",
+  "source": {"store_id": "store-1", "camera_id": "camera-2", "recording_id": "recording-3"},
+  "window": {
+    "id": "window-6", "start": "2026-08-15T07:00:00Z", "end": "2026-08-15T07:00:10Z",
+    "frame_start": 300, "frame_end": 600, "media_locator": "media://recording-3"
+  },
+  "payload_reference": "vendor-output://sanitized/rt-cv-window-6",
+  "detections": [
+    {"id": "detection-1", "class": "person", "confidence": 0.91, "box": [10.0, 20.0, 50.0, 90.0], "track_id": "track-8"},
+    {"id": "detection-2", "class": "vendor_class_987", "box": [100.0, 40.0, 140.0, 110.0]}
+  ]
+}
