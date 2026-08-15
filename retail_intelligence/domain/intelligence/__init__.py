@@ -4,8 +4,22 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from enum import Enum
 
-from .._base import DomainModel, register_enum, register_model, require_text, validate_confidence
-from ..media import Completeness, FrameRange, RetentionClass, SourceReference, TimeRange
+from .._base import (
+    DomainModel,
+    register_enum,
+    register_model,
+    require_text,
+    require_text_tuple,
+    validate_confidence,
+)
+from ..media import (
+    Completeness,
+    EvidenceWindow,
+    FrameRange,
+    RetentionClass,
+    SourceReference,
+    TimeRange,
+)
 
 
 @register_enum
@@ -13,6 +27,14 @@ class ObservationKind(str, Enum):
     BOX = "box"
     TRACK = "track"
     CAPTION = "caption"
+
+
+@register_enum
+class PersistenceState(str, Enum):
+    PENDING = "pending"
+    STORED = "stored"
+    INDEXED = "indexed"
+    FAILED = "failed"
 
 
 @register_model
@@ -25,12 +47,20 @@ class PipelineProvenance(DomainModel):
     pipeline_run_id: str
 
     def __post_init__(self) -> None:
-        for value, name in ((self.model, "model"), (self.model_version, "model_version"),
-                            (self.configuration_id, "configuration_id"),
-                            (self.pipeline_run_id, "pipeline_run_id")):
+        for value, name in (
+            (self.model, "model"),
+            (self.model_version, "model_version"),
+            (self.configuration_id, "configuration_id"),
+            (self.pipeline_run_id, "pipeline_run_id"),
+        ):
             require_text(value, name)
-        if any(not key.strip() or not value.strip() for key, value in self.configuration):
-            raise ValueError("configuration keys and values cannot be blank")
+        if not isinstance(self.configuration, tuple):
+            raise ValueError("configuration must be an immutable tuple")
+        for item in self.configuration:
+            if not isinstance(item, tuple) or len(item) != 2:
+                raise ValueError("configuration entries must be key-value tuples")
+            require_text(item[0], "configuration key")
+            require_text(item[1], "configuration value")
 
 
 @register_model
@@ -63,7 +93,11 @@ class IntelligenceContext(DomainModel):
         if not self.evidence:
             raise ValueError("at least one evidence link is required")
         validate_confidence(self.confidence)
-        if self.created_at.tzinfo is None or self.created_at.utcoffset() != timezone.utc.utcoffset(self.created_at):
+        if (
+            not isinstance(self.created_at, datetime)
+            or self.created_at.tzinfo is None
+            or self.created_at.utcoffset() != timezone.utc.utcoffset(self.created_at)
+        ):
             raise ValueError("created_at must be timezone-aware UTC")
         if any(link.source != self.source for link in self.evidence):
             raise ValueError("evidence source must match intelligence source")
@@ -100,8 +134,7 @@ class Event(DomainModel):
     def __post_init__(self) -> None:
         require_text(self.event_id, "event_id")
         require_text(self.event_type, "event_type")
-        if not self.observation_ids or any(not value.strip() for value in self.observation_ids):
-            raise ValueError("events require input observation identifiers")
+        require_text_tuple(self.observation_ids, "observation_ids")
 
 
 @register_model
@@ -118,8 +151,9 @@ class Metric(DomainModel):
     def __post_init__(self) -> None:
         require_text(self.metric_id, "metric_id")
         require_text(self.name, "name")
-        if not self.event_ids:
-            raise ValueError("metrics require input event identifiers")
+        require_text_tuple(self.event_ids, "event_ids")
+        if not isinstance(self.filters, tuple):
+            raise ValueError("filters must be an immutable tuple")
 
 
 @register_model
@@ -133,11 +167,56 @@ class Insight(DomainModel):
     def __post_init__(self) -> None:
         require_text(self.insight_id, "insight_id")
         require_text(self.text, "text")
-        if not self.supporting_object_ids:
-            raise ValueError("insights require a supporting evidence chain")
+        require_text_tuple(self.supporting_object_ids, "supporting_object_ids")
+
+
+@register_model
+@dataclass(frozen=True, slots=True)
+class EvidenceRecord(DomainModel):
+    """Durable normalized contents and persistence state for one window."""
+
+    window: EvidenceWindow
+    observations: tuple[Observation, ...]
+    events: tuple[Event, ...]
+    missing_stages: tuple[str, ...]
+    storage_state: PersistenceState
+    index_state: PersistenceState
+    last_error: str | None
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.observations, tuple) or not isinstance(self.events, tuple):
+            raise ValueError("observations and events must be immutable tuples")
+        if not isinstance(self.missing_stages, tuple):
+            raise ValueError("missing_stages must be an immutable tuple")
+        if self.window.completeness is Completeness.COMPLETE and self.missing_stages:
+            raise ValueError("complete evidence cannot have missing stages")
+        intelligence_objects = (*self.observations, *self.events)
+        for intelligence_object in intelligence_objects:
+            context = intelligence_object.context
+            if context.source != self.window.source:
+                raise ValueError("record contents must use the evidence window source")
+            if not any(
+                link.evidence_window_id == self.window.window_id
+                for link in context.evidence
+            ):
+                raise ValueError("record contents must link to the evidence window")
+        if not isinstance(self.storage_state, PersistenceState):
+            object.__setattr__(self, "storage_state", PersistenceState(self.storage_state))
+        if not isinstance(self.index_state, PersistenceState):
+            object.__setattr__(self, "index_state", PersistenceState(self.index_state))
+        if self.last_error is not None:
+            require_text(self.last_error, "last_error")
 
 
 __all__ = [
-    "Event", "EvidenceLink", "Insight", "IntelligenceContext", "Metric", "Observation",
-    "ObservationKind", "PipelineProvenance",
+    "Event",
+    "EvidenceLink",
+    "EvidenceRecord",
+    "Insight",
+    "IntelligenceContext",
+    "Metric",
+    "Observation",
+    "ObservationKind",
+    "PersistenceState",
+    "PipelineProvenance",
 ]

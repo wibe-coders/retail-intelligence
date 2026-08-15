@@ -24,7 +24,8 @@ by ingest, analytics, indexing, and query code:
 - `domain.intelligence` exports model observations, derived events, metrics, and insights. Every
   stored intelligence object contains source identifiers, exact pipeline provenance, confidence,
   retention, and links to its evidence. `ObservationKind.CAPTION` keeps generated captions separate
-  from derived events and user-facing facts.
+  from derived events and user-facing facts. `EvidenceRecord` preserves normalized observations,
+  derived events, missing stages, and separate storage and indexing states for each evidence window.
 - `domain.query` exports citations and answers whose state is `supported`, `ambiguous`,
   `unsupported`, or `out_of_retention`. A supported answer requires cited evidence; every other
   state requires an explicit abstention reason.

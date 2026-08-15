@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import math
 from dataclasses import fields, is_dataclass
 from datetime import datetime
 from enum import Enum
@@ -60,8 +61,25 @@ def require_text(value: str, name: str) -> None:
 
 
 def validate_confidence(value: float | None) -> None:
-    if value is not None and (isinstance(value, bool) or not 0 <= value <= 1):
+    if value is not None and (
+        isinstance(value, bool)
+        or not isinstance(value, (int, float))
+        or not math.isfinite(value)
+        or not 0 <= value <= 1
+    ):
         raise ValueError("confidence must be between 0 and 1 inclusive")
+
+
+def require_non_negative_integer(value: int, name: str) -> None:
+    if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+        raise ValueError(f"{name} must be a non-negative integer")
+
+
+def require_text_tuple(values: tuple[str, ...], name: str) -> None:
+    if not isinstance(values, tuple) or not values:
+        raise ValueError(f"{name} must be a non-empty tuple")
+    for value in values:
+        require_text(value, name)
 
 
 def _encode(value: Any) -> Any:
@@ -71,7 +89,10 @@ def _encode(value: Any) -> Any:
             **{field.name: _encode(getattr(value, field.name)) for field in fields(value)},
         }
     if isinstance(value, Enum):
-        return {"__enum__": f"{type(value).__module__}.{type(value).__qualname__}", "value": value.value}
+        return {
+            "__enum__": f"{type(value).__module__}.{type(value).__qualname__}",
+            "value": value.value,
+        }
     if isinstance(value, datetime):
         return {"__datetime__": value.isoformat().replace("+00:00", "Z")}
     if isinstance(value, tuple):
