@@ -1,6 +1,10 @@
 # retail-intelligence
 NVIDIA Spark Hack 2026
 
+The [retail video dataset review](docs/retail-video-datasets.md) compares candidate evaluation data,
+usage terms, leakage risks, and task-specific recommendations. It does not authorize dataset use or
+redistribution.
+
 ## Visual-token budget validation
 
 `retail_intelligence.evaluate_inference_budget(width, height, selected_frames)` evaluates the final
