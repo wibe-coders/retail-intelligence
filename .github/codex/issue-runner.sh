@@ -121,7 +121,6 @@ run_codex() {
     codex exec \
       --ephemeral \
       --approve-for-me \
-      --sandbox workspace-write \
       --cd "$GITHUB_WORKSPACE" \
       --output-schema "$GITHUB_WORKSPACE/.github/codex/result.schema.json" \
       --output-last-message "$(result_file)" \
