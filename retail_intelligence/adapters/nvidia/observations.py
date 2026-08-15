@@ -144,7 +144,11 @@ def _parse_envelope(payload: dict[str, Any]) -> ObservationEnvelopeDTO:
     time_range = TimeRange(_timestamp(window, "start"), _timestamp(window, "end"))
     frame_range = FrameRange(_integer(window, "frame_start"), _integer(window, "frame_end"))
     evidence = EvidenceLink(
-        source, _text(window, "id"), time_range, frame_range, _text(window, "media_locator")
+        source,
+        _text(window, "id"),
+        time_range,
+        frame_range,
+        _safe_media_locator(_text(window, "media_locator")),
     )
     model = _required(payload, "model", dict)
     configuration = _required(payload, "configuration", dict)
@@ -153,8 +157,7 @@ def _parse_envelope(payload: dict[str, Any]) -> ObservationEnvelopeDTO:
         _text(model, "name"),
         _text(model, "version"),
         _text(configuration, "id"),
-        tuple(sorted((_plain_text(key, "configuration key"), _plain_text(value, "configuration value"))
-                     for key, value in configuration_values.items())),
+        _safe_configuration(configuration_values),
         _text(payload, "run_id"),
     )
     payload_reference = _safe_payload_reference(_text(payload, "payload_reference"))
@@ -201,6 +204,37 @@ def _safe_payload_reference(value: str) -> str:
     if parsed.username or parsed.password:
         raise ValueError("payload_reference cannot contain credentials")
     return value
+
+
+def _safe_media_locator(value: str) -> str:
+    parsed = urlsplit(value)
+    if parsed.scheme != "media" or not parsed.netloc or parsed.query or parsed.fragment:
+        raise ValueError("media_locator must be a query-free media URI")
+    if parsed.username or parsed.password:
+        raise ValueError("media_locator cannot contain credentials")
+    return value
+
+
+def _safe_configuration(values: dict[Any, Any]) -> tuple[tuple[str, str], ...]:
+    configuration = []
+    for raw_key, raw_value in values.items():
+        key = _plain_text(raw_key, "configuration key")
+        value = _plain_text(raw_value, "configuration value")
+        if _configuration_key_is_safe(key):
+            configuration.append((key, value))
+    return tuple(sorted(configuration))
+
+
+def _configuration_key_is_safe(key: str) -> bool:
+    normalized = key.lower().replace("-", "_")
+    secret_markers = ("credential", "password", "secret", "signed_url", "auth_token", "api_key")
+    if any(marker in normalized for marker in secret_markers):
+        return False
+    prompt_markers = ("prompt", "instruction", "messages")
+    safe_metadata_suffixes = ("_id", "_revision", "_version", "_digest", "_hash")
+    return not any(marker in normalized for marker in prompt_markers) or normalized.endswith(
+        safe_metadata_suffixes
+    )
 
 
 def _at_stage(stage: str, operation: Callable[[], Any]) -> Any:

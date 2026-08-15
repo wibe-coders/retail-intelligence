@@ -59,6 +59,30 @@ class ObservationAdapterContractTests(unittest.TestCase):
         with self.assertRaisesRegex(NormalizationError, "rt-vlm normalization failed"):
             normalize_rt_vlm(unsafe)
 
+    def test_credential_bearing_media_locator_is_rejected(self) -> None:
+        for locator in (
+            "https://user:secret@example.test/clip.mp4",
+            "https://example.test/clip.mp4?signature=secret",
+        ):
+            unsafe = load_fixture("rt_cv_observations.json")
+            unsafe["window"]["media_locator"] = locator
+
+            with self.subTest(locator=locator), self.assertRaisesRegex(
+                NormalizationError, "rt-cv normalization failed"
+            ):
+                normalize_rt_cv(unsafe)
+
+    def test_full_prompt_is_removed_from_provenance(self) -> None:
+        response = load_fixture("rt_vlm_caption.json")
+        response["configuration"]["values"]["prompt"] = "Describe every frame in detail."
+
+        caption = normalize_rt_vlm(response)[0]
+
+        self.assertEqual(
+            caption.context.provenance.configuration,
+            (("prompt_revision", "sha256:abc"),),
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
