@@ -1,0 +1,14 @@
+{
+  "model": {"name": "cosmos-nano", "version": "3.2.1"},
+  "configuration": {"id": "vlm-config-4", "values": {"prompt_revision": "sha256:abc"}},
+  "run_id": "run-12",
+  "retention_class": "standard",
+  "created_at": "2026-08-15T07:00:12Z",
+  "source": {"store_id": "store-1", "camera_id": "camera-2", "recording_id": "recording-3"},
+  "window": {
+    "id": "window-6", "start": "2026-08-15T07:00:00Z", "end": "2026-08-15T07:00:10Z",
+    "frame_start": 300, "frame_end": 600, "media_locator": "media://recording-3"
+  },
+  "payload_reference": "vendor-output://sanitized/rt-vlm-window-6",
+  "caption": {"id": "caption-2", "text": "A person walks through the aisle."}
+}
