@@ -18,8 +18,10 @@ class CaptionRequest:
         if not isinstance(self.frames, tuple):
             raise ValueError("frames must be an immutable tuple")
         values = (self.width, self.height, self.selected_frame_count)
-        if any(isinstance(value, bool) or not isinstance(value, int) or value <= 0
-               for value in values):
+        if any(
+            isinstance(value, bool) or not isinstance(value, int) or value <= 0
+            for value in values
+        ):
             raise ValueError("width, height, and selected_frame_count must be positive integers")
 
 
@@ -31,6 +33,18 @@ class PreparedCaptionInput:
     width: int
     height: int
     selected_frame_count: int
+
+    def __post_init__(self) -> None:
+        values = (self.width, self.height, self.selected_frame_count)
+        if any(
+            isinstance(value, bool) or not isinstance(value, int) or value < 0
+            for value in values
+        ):
+            raise ValueError(
+                "width, height, and selected_frame_count must be non-negative integers"
+            )
+        if self.width == 0 or self.height == 0:
+            raise ValueError("prepared input dimensions must be positive")
 
 
 class CaptionStageState(str, Enum):
@@ -47,6 +61,17 @@ class CaptionStageOutcome:
     response: Any | None
     reason: str | None
 
+    def __post_init__(self) -> None:
+        if self.state is CaptionStageState.COMPLETE and (
+            self.budget is None or not self.budget.accepted or self.response is None
+        ):
+            raise ValueError("complete caption outcomes require an accepted budget and response")
+        if (
+            self.state in (CaptionStageState.GAP, CaptionStageState.REJECTED)
+            and self.response is not None
+        ):
+            raise ValueError("gap and rejected caption outcomes cannot contain a response")
+
 
 class CaptionPreprocessor(Protocol):
     def prepare(self, frames: tuple[Any, ...], width: int, height: int) -> PreparedCaptionInput: ...
@@ -60,5 +85,12 @@ class CaptionPort(Protocol):
     def caption(self, request: CaptionRequest) -> CaptionStageOutcome: ...
 
 
-__all__ = ["CaptionClient", "CaptionPort", "CaptionPreprocessor", "CaptionRequest",
-           "CaptionStageOutcome", "CaptionStageState", "PreparedCaptionInput"]
+__all__ = [
+    "CaptionClient",
+    "CaptionPort",
+    "CaptionPreprocessor",
+    "CaptionRequest",
+    "CaptionStageOutcome",
+    "CaptionStageState",
+    "PreparedCaptionInput",
+]

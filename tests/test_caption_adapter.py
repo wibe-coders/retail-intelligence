@@ -69,6 +69,16 @@ class RTVLMCaptionAdapterTests(unittest.TestCase):
         self.assertEqual(outcome.budget.selected_frames, 60)
         self.assertEqual(len(self.client.calls), 1)
 
+    def test_frame_selection_is_evenly_spaced_without_duplicates(self):
+        outcome = self.adapter.caption(self.request(frame_count=160))
+
+        selected_frames = self.preprocessor.calls[0][0]
+        self.assertEqual(len(selected_frames), 80)
+        self.assertEqual(selected_frames[0], 0)
+        self.assertEqual(selected_frames[-1], 159)
+        self.assertEqual(len(set(selected_frames)), 80)
+        self.assertEqual(outcome.state, CaptionStageState.COMPLETE)
+
     def test_too_few_source_frames_record_partial_without_inference(self):
         outcome = self.adapter.caption(self.request(frame_count=30))
         self.assertEqual(outcome.state, CaptionStageState.PARTIAL)
