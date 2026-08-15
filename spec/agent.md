@@ -6,6 +6,11 @@ This is the codebase's product and architecture backbone. More detailed specs ma
 not contradict it. When code and this document disagree, either restore the documented behavior or
 change this document in the same review.
 
+The component specifications distinguish the foundation that exists today from the target system
+described below. The current components are the [evidence contracts](evidence-contracts/agent.md),
+the [data pipeline](data-pipeline/agent.md), and the
+[NVIDIA adapters](nvidia-adapters/agent.md).
+
 ## Product
 
 Turn retail CCTV into useful, evidence-backed observations and let an authorized user question them
@@ -124,7 +129,7 @@ Dataset rules:
 - Start with RGB-only subsets; depth is optional and several terabytes.
 - Preserve scene-level splits. Synchronized camera views must never cross splits.
 - Keep each 2026 Cosmos Transfer re-render with its source scene to prevent leakage.
-- Exclude the documented corrupt `MTMC_Tracking_2024/scene_071/camera_0649` video.
+- Exclude the documented corrupt **MTMC_Tracking_2024/scene_071/camera_0649** video.
 - Record the dataset revision, selected scenes, checksums, exclusions, and CC BY 4.0 attribution in
   an immutable manifest.
 - Treat annotations as truth only for their documented detection and tracking tasks.
@@ -190,8 +195,8 @@ metadata. Evidence access is authorized at request time; possession of a clip UR
 - User roles and whether stores are isolated tenants.
 - Exact VSS release, local models, stores, and deployment resource profile.
 
-Do not hide these choices behind defaults. Record each decision in `spec/decisions/` with the evidence
-that justified it.
+Do not hide these choices behind defaults. Record each decision, with the evidence that justified
+it, in the relevant component specification at `spec/<item-name>/agent.md`.
 
 ## References
 

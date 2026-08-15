@@ -1,108 +1,29 @@
 # retail-intelligence
-NVIDIA Spark Hack 2026
 
-The [retail video dataset review](docs/retail-video-datasets.md) compares candidate evaluation data,
-usage terms, leakage risks, and task-specific recommendations. It does not authorize dataset use or
-redistribution.
+Retail Intelligence turns retail CCTV into evidence-backed observations and lets authorized users
+ask questions about them in plain language. Runtime video and queries stay on one DGX Spark, and
+answers link back to the supporting camera and time range.
 
-## Visual-token budget validation
+This project is being developed for NVIDIA Spark Hack 2026.
 
-`retail_intelligence.evaluate_inference_budget(width, height, selected_frames)` evaluates the final
-model-input dimensions and actual selected frame count before RT-VLM inference. The caption port and
-NVIDIA adapter enforce that check both on the planned sample and on the realized preprocessed tensor,
-record the resulting budget with the stage outcome, and preserve partial or gap outcomes when source
-frames are missing without duplicating frames. It accepts budgets
-from 4,096 through 16,384 visual tokens and reports `below_minimum` or `above_maximum` otherwise.
-Non-positive inputs raise `ValueError`.
+## Project documentation
+
+- [Product and architecture specification](spec/agent.md)
+- [Evidence contracts](spec/evidence-contracts/agent.md)
+- [Data pipeline specification](spec/data-pipeline/agent.md)
+- [NVIDIA adapter specification](spec/nvidia-adapters/agent.md)
+- [Retail video dataset review](docs/retail-video-datasets.md)
+
+The dataset review compares candidate evaluation data, usage terms, leakage risks, and
+task-specific recommendations. It does not authorize dataset use or redistribution.
+
+## Development
 
 Run the complete test suite with:
 
 ```bash
-python -m unittest discover -s tests -v
+python3 -m unittest discover -s tests -v
 ```
-
-## Evidence domain contracts
-
-The framework-independent contracts under `retail_intelligence.domain` define the vocabulary shared
-by ingest, analytics, indexing, and query code:
-
-- `domain.media` exports UTC half-open `TimeRange` values, source identifiers, source metadata, and
-  complete, partial, or gap evidence windows.
-- `domain.intelligence` exports model observations, derived events, metrics, and insights. Every
-  stored intelligence object contains source identifiers, exact pipeline provenance, confidence,
-  retention, and links to its evidence. `ObservationKind.CAPTION` keeps generated captions separate
-  from derived events and user-facing facts. `EvidenceRecord` preserves normalized observations,
-  derived events, missing stages, and separate storage and indexing states for each evidence window.
-- `domain.query` exports citations and answers whose state is `supported`, `ambiguous`,
-  `unsupported`, or `out_of_retention`. A supported answer requires cited evidence; every other
-  state requires an explicit abstention reason.
-
-All public domain models are frozen dataclasses and expose `to_dict`, `from_dict`, `to_json`, and
-`from_json`. The serialized representation is plain JSON and does not require a web framework,
-database, or model SDK. Import public names from their owning subpackage, for example:
-
-```python
-from retail_intelligence.domain.media import SourceReference, TimeRange
-from retail_intelligence.domain.query import Answer, AnswerState
-```
-
-The `__all__` list in each domain subpackage is the intentional public API. Names in the private
-`domain._base` module are implementation details.
-
-## Pipeline identity and idempotency
-
-`retail_intelligence.domain.identity.PipelineIdentity` deterministically identifies a pipeline run,
-its evidence window, and each ordered observation. Four fields are identity-bearing: the source
-content checksum, UTC half-open time range, pipeline version, and configuration. Observation IDs
-also include the observation kind and its zero-based sequence within the normalized pipeline output.
-
-Configuration is canonical JSON before hashing. Mapping order, JSON whitespace, and list-versus-tuple
-representation do not change an identifier. Credential-bearing keys such as passwords, tokens,
-authorization values, secrets, and signatures are removed at every nesting level. Signed URL query
-parameters and URL user information are removed before hashing while the resource location remains
-identity-bearing. Validation errors never include rejected configuration values. Changing
-credentials or refreshing a signature therefore does not create a new logical pipeline input.
-
-```python
-from retail_intelligence.domain.identity import PipelineIdentity
-
-identity = PipelineIdentity(source_checksum, time_range, pipeline_version, configuration)
-window_id = identity.evidence_window_id
-run_id = identity.pipeline_run_id
-caption_id = identity.observation_id("caption", 0)
-```
-
-## Evidence storage boundary
-
-The protocols in `retail_intelligence.ports.storage` separate source, evidence-window,
-observation/event, pipeline-run, and citation persistence from infrastructure choices. The
-`InMemoryEvidenceStorage` adapter is intended for deterministic tests and the one-camera experiment;
-it is not a production database. Saving an equal record under the same identifier is idempotent,
-while reusing that identifier with different immutable content raises `ConflictingRecordError`.
-Pipeline runs may advance through their lifecycle, but cannot leave a terminal state or change their
-source, time range, pipeline version, or configuration. Temporal queries require an exact
-store/camera/recording reference and a UTC half-open time range.
-
-```python
-from retail_intelligence.adapters.storage import InMemoryEvidenceStorage
-
-storage = InMemoryEvidenceStorage()
-storage.save_source(source)
-```
-
-## NVIDIA observation adapters
-
-`retail_intelligence.adapters.nvidia` converts RT-CV detections and tracks and RT-VLM captions into
-canonical `Observation` values. The adapter DTOs require source, UTC time and frame bounds, model
-name and version, configuration, pipeline run, creation time, and retention metadata. Detector
-class names are retained exactly as supplied; the adapter does not infer retail concepts.
-
-Optional vendor confidence remains `None` when absent. Each observation keeps a query-free
-`vendor-output://` reference to a separately retained, sanitized vendor response. Raw payloads,
-frames, credentials, signed URLs, and prompts do not enter the canonical contract. Invalid vendor
-responses raise `NormalizationError` with the failing `rt-cv` or `rt-vlm` stage. Evidence uses an
-opaque, query-free `media://` locator. Configuration retains safe metadata such as prompt revisions
-but removes full prompts, instructions, messages, and secret-bearing entries.
 
 ## Implement Linear issues with Codex cloud
 

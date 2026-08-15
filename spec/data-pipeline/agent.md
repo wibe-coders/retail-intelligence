@@ -6,6 +6,10 @@ This document refines the ingestion, analysis, and indexing parts of the
 [main specification](../agent.md). It owns the path from a camera or video file to indexed evidence.
 Natural-language retrieval, answer generation, and the web API are outside this boundary.
 
+The current package implements visual-token evaluation and the RT-VLM caption boundary through
+preprocessing and model-client invocation. Source ingestion, continuous execution, indexing
+infrastructure, and shared-resource admission are not implemented yet.
+
 The first accepted deployment processes one 1080p, 30 FPS, H.264 camera on one DGX Spark. More
 cameras are unsupported until the complete co-resident stack passes the capacity gates below.
 
@@ -139,6 +143,21 @@ Reject a window before inference when its configuration or realized sample falls
 range. Do not duplicate frames to reach the minimum. A low-frame-rate or damaged source produces an
 explicit gap or partial record.
 
+### Implemented contract
+
+`retail_intelligence/inference_budget.py` evaluates final model-input dimensions and the actual
+selected frame count against this equation and range. Inputs must be positive. Its immutable result
+reports the computed token count, whether the request is accepted, and `below_minimum` or
+`above_maximum` when rejected.
+
+`retail_intelligence/ports/caption.py` defines framework-independent request, preprocessing, client,
+and stage-outcome contracts. `retail_intelligence/adapters/nvidia/caption.py` selects frames evenly
+without duplication, rejects an invalid planned budget before preprocessing, and checks the realized
+tensor dimensions and frame count before inference. Missing source frames produce a partial outcome;
+no frames produce a gap. A preprocessor that adds frames is rejected as partial evidence.
+
+The executable checks are in `tests/test_inference_budget.py` and `tests/test_caption_adapter.py`.
+
 ## DGX Spark admission and backpressure
 
 Exactly one continuous RT-VLM caption stream may be active. A second request is rejected before it
@@ -186,7 +205,7 @@ ingestion, calibration, detection, tracking, trajectories, and load tests. After
 admission is implemented, also use it for cross-camera handoff. Use scene-held-out validation or test
 data for reported tracking results. Keep synchronized cameras and Cosmos Transfer re-renders with
 their source scene in the same split, and exclude the documented corrupt
-`MTMC_Tracking_2024/scene_071/camera_0649` video.
+**MTMC_Tracking_2024/scene_071/camera_0649** video.
 
 This dataset is mostly synthetic and has no natural-language or retail-interaction ground truth. It
 cannot validate caption faithfulness or retail insight accuracy.
