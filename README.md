@@ -52,8 +52,10 @@ The protocols in `retail_intelligence.ports.storage` separate source, evidence-w
 observation/event, pipeline-run, and citation persistence from infrastructure choices. The
 `InMemoryEvidenceStorage` adapter is intended for deterministic tests and the one-camera experiment;
 it is not a production database. Saving an equal record under the same identifier is idempotent,
-while reusing that identifier with different content raises `ConflictingRecordError`. Temporal
-queries require an exact store/camera/recording reference and a UTC half-open time range.
+while reusing that identifier with different immutable content raises `ConflictingRecordError`.
+Pipeline runs may advance through their lifecycle, but cannot leave a terminal state or change their
+source, time range, pipeline version, or configuration. Temporal queries require an exact
+store/camera/recording reference and a UTC half-open time range.
 
 ```python
 from retail_intelligence.adapters.storage import InMemoryEvidenceStorage

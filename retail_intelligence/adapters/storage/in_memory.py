@@ -3,7 +3,7 @@
 from collections.abc import Callable
 from typing import TypeVar
 
-from ...domain.intelligence import Event, Observation, PipelineRun
+from ...domain.intelligence import Event, Observation, PipelineRun, PipelineRunState
 from ...domain.media import EvidenceWindow, Source, SourceReference, TimeRange
 from ...domain.query import Citation
 
@@ -83,7 +83,39 @@ class InMemoryEvidenceStorage:
         )
 
     def save_pipeline_run(self, run: PipelineRun) -> PipelineRun:
-        return self._save(self._pipeline_runs, run.pipeline_run_id, run)
+        existing = self._pipeline_runs.get(run.pipeline_run_id)
+        if existing is None:
+            self._pipeline_runs[run.pipeline_run_id] = run
+            return run
+        if not self._same_pipeline_run_identity(existing, run):
+            raise ConflictingRecordError(
+                f"pipeline run {run.pipeline_run_id!r} has different immutable content"
+            )
+        if run.state is existing.state:
+            return existing
+        self._validate_pipeline_run_transition(existing, run)
+        self._pipeline_runs[run.pipeline_run_id] = run
+        return run
+
+    @staticmethod
+    def _validate_pipeline_run_transition(existing: PipelineRun, updated: PipelineRun) -> None:
+        allowed_next_states = {
+            PipelineRunState.QUEUED: {
+                PipelineRunState.RUNNING,
+                PipelineRunState.FAILED,
+                PipelineRunState.CANCELLED,
+            },
+            PipelineRunState.RUNNING: {
+                PipelineRunState.SUCCEEDED,
+                PipelineRunState.FAILED,
+                PipelineRunState.CANCELLED,
+            },
+        }
+        if updated.state not in allowed_next_states.get(existing.state, set()):
+            raise ConflictingRecordError(
+                f"pipeline run {updated.pipeline_run_id!r} cannot transition "
+                f"from {existing.state.value!r} to {updated.state.value!r}"
+            )
 
     def get_pipeline_run(self, pipeline_run_id: str) -> PipelineRun | None:
         return self._pipeline_runs.get(pipeline_run_id)
@@ -122,6 +154,16 @@ class InMemoryEvidenceStorage:
             )
         records[identifier] = record
         return record
+
+    @staticmethod
+    def _same_pipeline_run_identity(existing: PipelineRun, updated: PipelineRun) -> bool:
+        return (
+            existing.pipeline_run_id == updated.pipeline_run_id
+            and existing.source == updated.source
+            and existing.time_range == updated.time_range
+            and existing.pipeline_version == updated.pipeline_version
+            and existing.configuration_id == updated.configuration_id
+        )
 
     @classmethod
     def _find_intelligence(cls, records, source, time_range, identifier):

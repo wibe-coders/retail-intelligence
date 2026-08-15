@@ -114,18 +114,62 @@ class InMemoryEvidenceStorageTests(unittest.TestCase):
         )
 
     def test_pipeline_runs_are_queryable_by_source_and_utc_range(self) -> None:
-        run = PipelineRun(
+        queued = PipelineRun(
+            "run-1", self.reference, self.interval, "pipeline-1", "config-1",
+            PipelineRunState.QUEUED,
+        )
+        running = PipelineRun(
+            "run-1", self.reference, self.interval, "pipeline-1", "config-1",
+            PipelineRunState.RUNNING,
+        )
+        succeeded = PipelineRun(
             "run-1", self.reference, self.interval, "pipeline-1", "config-1",
             PipelineRunState.SUCCEEDED,
         )
-        self.storage.save_pipeline_run(run)
+        self.storage.save_pipeline_run(queued)
+        self.storage.save_pipeline_run(running)
+        self.storage.save_pipeline_run(succeeded)
 
-        self.assertEqual(self.storage.get_pipeline_run("run-1"), run)
-        self.assertEqual(self.storage.find_pipeline_runs(self.reference, self.interval), (run,))
+        self.assertEqual(self.storage.get_pipeline_run("run-1"), succeeded)
+        self.assertEqual(
+            self.storage.find_pipeline_runs(self.reference, self.interval), (succeeded,)
+        )
         self.assertEqual(
             self.storage.find_pipeline_runs(self.other_store_reference, self.interval),
             (),
         )
+
+    def test_pipeline_run_update_rejects_changed_immutable_content(self) -> None:
+        queued = PipelineRun(
+            "run-1", self.reference, self.interval, "pipeline-1", "config-1",
+            PipelineRunState.QUEUED,
+        )
+        changed_provenance = PipelineRun(
+            "run-1", self.reference, self.interval, "pipeline-2", "config-1",
+            PipelineRunState.RUNNING,
+        )
+        self.storage.save_pipeline_run(queued)
+
+        with self.assertRaises(ConflictingRecordError):
+            self.storage.save_pipeline_run(changed_provenance)
+
+        self.assertEqual(self.storage.get_pipeline_run("run-1"), queued)
+
+    def test_pipeline_run_cannot_leave_a_terminal_state(self) -> None:
+        succeeded = PipelineRun(
+            "run-1", self.reference, self.interval, "pipeline-1", "config-1",
+            PipelineRunState.SUCCEEDED,
+        )
+        running = PipelineRun(
+            "run-1", self.reference, self.interval, "pipeline-1", "config-1",
+            PipelineRunState.RUNNING,
+        )
+        self.storage.save_pipeline_run(succeeded)
+
+        with self.assertRaises(ConflictingRecordError):
+            self.storage.save_pipeline_run(running)
+
+        self.assertEqual(self.storage.get_pipeline_run("run-1"), succeeded)
 
 
 if __name__ == "__main__":
