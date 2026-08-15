@@ -1,8 +1,13 @@
 """Budget-enforcing adapter for RT-VLM caption inference."""
 
 from ...inference_budget import InferenceBudget, evaluate_inference_budget
-from ...ports.caption import (CaptionClient, CaptionPreprocessor, CaptionRequest,
-                              CaptionStageOutcome, CaptionStageState)
+from ...ports.caption import (
+    CaptionClient,
+    CaptionPreprocessor,
+    CaptionRequest,
+    CaptionStageOutcome,
+    CaptionStageState,
+)
 
 
 class RTVLMCaptionAdapter:
@@ -17,7 +22,7 @@ class RTVLMCaptionAdapter:
         if selected_count == 0:
             return CaptionStageOutcome(CaptionStageState.GAP, None, None, "no_source_frames")
 
-        selected_frames = request.frames[:selected_count]
+        selected_frames = self._select_evenly_spaced(request.frames, selected_count)
         planned_budget = evaluate_inference_budget(request.width, request.height, selected_count)
         if not planned_budget.accepted:
             return self._stopped_outcome(request, planned_budget)
@@ -30,13 +35,6 @@ class RTVLMCaptionAdapter:
             return CaptionStageOutcome(CaptionStageState.PARTIAL, planned_budget, None,
                                        "preprocessor_duplicated_frames")
 
-        realized_budget = evaluate_inference_budget(
-            prepared.width, prepared.height, prepared.selected_frame_count
-        )
-        if not realized_budget.accepted:
-            return self._stopped_outcome(request, realized_budget)
-
-        # Re-evaluate next to the vendor call, after all preprocessing is complete.
         inference_budget = evaluate_inference_budget(
             prepared.width, prepared.height, prepared.selected_frame_count
         )
@@ -46,6 +44,15 @@ class RTVLMCaptionAdapter:
         state = (CaptionStageState.COMPLETE if selected_count == request.selected_frame_count
                  else CaptionStageState.PARTIAL)
         return CaptionStageOutcome(state, inference_budget, response, None)
+
+    @staticmethod
+    def _select_evenly_spaced(frames: tuple[object, ...], count: int) -> tuple[object, ...]:
+        if count == len(frames):
+            return frames
+        if count == 1:
+            return (frames[0],)
+        last_index = len(frames) - 1
+        return tuple(frames[index * last_index // (count - 1)] for index in range(count))
 
     @staticmethod
     def _stopped_outcome(request: CaptionRequest, budget: InferenceBudget) -> CaptionStageOutcome:
