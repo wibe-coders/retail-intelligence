@@ -29,7 +29,11 @@ outside the checkout.
 Linear starts work in a Codex cloud environment connected to this repository. If the selected
 repository or environment is wrong, stop and report the mismatch instead of changing another
 repository. Work only in the cloud task's checkout. Do not close the Linear issue or merge a pull
-request. Leave the completed diff and exact verification results for human review.
+request. Leave the completed diff and exact verification results in the cloud chat for human review.
+
+Do not require or invoke `make_pr`, `gh pr create`, or another repository-specific pull-request
+helper. This repository does not provide one, and its absence is not a task failure. The owner
+creates the pull request from the completed Codex cloud chat.
 
 For each issue:
 
@@ -47,6 +51,9 @@ For each issue:
    If no commands are documented, inspect the project manifests and use their standard checks.
 7. Report exactly which checks ran. If work is incomplete or any required check fails, return a
    partial result with the blocker and leave useful work in the checkout for inspection.
+
+Follow-up instructions on the same Linear issue continue the existing cloud chat. Do not start a
+second task for an issue that already has one in progress.
 
 ## Git publishing
 
