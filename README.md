@@ -49,6 +49,28 @@ from retail_intelligence.domain.query import Answer, AnswerState
 The `__all__` list in each domain subpackage is the intentional public API. Names in the private
 `domain._base` module are implementation details.
 
+## Pipeline identity and idempotency
+
+`retail_intelligence.domain.identity.PipelineIdentity` deterministically identifies a pipeline run,
+its evidence window, and each ordered observation. Four fields are identity-bearing: the source
+content checksum, UTC half-open time range, pipeline version, and configuration. Observation IDs
+also include the observation kind and its zero-based sequence within the normalized pipeline output.
+
+Configuration is canonical JSON before hashing. Mapping order, JSON whitespace, and list-versus-tuple
+representation do not change an identifier. Credential-bearing keys such as passwords, tokens,
+authorization values, secrets, and signatures are removed at every nesting level. Signed URLs are
+replaced before hashing, and validation errors never include rejected configuration values. Changing
+credentials or refreshing a signed URL therefore does not create a new logical pipeline input.
+
+```python
+from retail_intelligence.domain.identity import PipelineIdentity
+
+identity = PipelineIdentity(source_checksum, time_range, pipeline_version, configuration)
+window_id = identity.evidence_window_id
+run_id = identity.pipeline_run_id
+caption_id = identity.observation_id("caption", 0)
+```
+
 ## Evidence storage boundary
 
 The protocols in `retail_intelligence.ports.storage` separate source, evidence-window,
