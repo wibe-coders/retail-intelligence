@@ -1,6 +1,19 @@
 # retail-intelligence
 NVIDIA Spark Hack 2026
 
+## Visual-token budget validation
+
+`retail_intelligence.evaluate_inference_budget(width, height, selected_frames)` evaluates the final
+model-input dimensions and actual selected frame count before RT-VLM inference. It accepts budgets
+from 4,096 through 16,384 visual tokens and reports `below_minimum` or `above_maximum` otherwise.
+Non-positive inputs raise `ValueError`.
+
+Run the complete test suite with:
+
+```bash
+python -m unittest discover -s tests -v
+```
+
 ## Implement Linear issues with Codex cloud
 
 The repository uses the native Codex for Linear integration. Assigning a Linear issue to Codex or
