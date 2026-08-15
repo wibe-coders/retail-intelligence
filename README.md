@@ -6,6 +6,21 @@ answers link back to the supporting camera and time range.
 
 This project is being developed for NVIDIA Spark Hack 2026.
 
+## DGX Spark smoke-test video
+
+The repository includes one approved short video for the first real RT-VLM inference run. It shows
+a distant person walking through an indoor shopping passageway; its expected coarse observations,
+source, license, and transformation are recorded in [samples/README.md](samples/README.md).
+
+Install `ffmpeg` and run the complete checksum, metadata, decode, frame-sampling, and visual-token
+preflight with one command:
+
+```bash
+python3 scripts/preflight_smoke_video.py
+```
+
+Do not start the Spark inference run unless every check prints `PASS`.
+
 ## Project documentation
 
 - [Product and architecture specification](spec/agent.md)
