@@ -64,6 +64,20 @@ storage = InMemoryEvidenceStorage()
 storage.save_source(source)
 ```
 
+## NVIDIA observation adapters
+
+`retail_intelligence.adapters.nvidia` converts RT-CV detections and tracks and RT-VLM captions into
+canonical `Observation` values. The adapter DTOs require source, UTC time and frame bounds, model
+name and version, configuration, pipeline run, creation time, and retention metadata. Detector
+class names are retained exactly as supplied; the adapter does not infer retail concepts.
+
+Optional vendor confidence remains `None` when absent. Each observation keeps a query-free
+`vendor-output://` reference to a separately retained, sanitized vendor response. Raw payloads,
+frames, credentials, signed URLs, and prompts do not enter the canonical contract. Invalid vendor
+responses raise `NormalizationError` with the failing `rt-cv` or `rt-vlm` stage. Evidence uses an
+opaque, query-free `media://` locator. Configuration retains safe metadata such as prompt revisions
+but removes full prompts, instructions, messages, and secret-bearing entries.
+
 ## Implement Linear issues with Codex cloud
 
 The repository uses the native Codex for Linear integration. Assigning a Linear issue to Codex or
