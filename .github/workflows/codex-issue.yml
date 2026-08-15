@@ -15,8 +15,8 @@ jobs:
     if: >-
       github.event.issue.state == 'open' &&
       (github.event.label.name == 'auto' || github.event.label.name == 'supervised') &&
-      contains(fromJSON('["varun10p", "VishnuKartha", "visirion07"]'), github.actor) &&
-      contains(fromJSON('["varun10p", "VishnuKartha", "visirion07"]'), github.event.issue.user.login)
+      contains(fromJSON('["varun10p", "VishnuKartha", "visirion07", "nTamilselvan"]'), github.actor) &&
+      contains(fromJSON('["varun10p", "VishnuKartha", "visirion07", "nTamilselvan"]'), github.event.issue.user.login)
     runs-on: [self-hosted, Linux, X64, retail-intelligence-codex]
     timeout-minutes: 180
     permissions:
