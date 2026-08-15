@@ -58,9 +58,10 @@ also include the observation kind and its zero-based sequence within the normali
 
 Configuration is canonical JSON before hashing. Mapping order, JSON whitespace, and list-versus-tuple
 representation do not change an identifier. Credential-bearing keys such as passwords, tokens,
-authorization values, secrets, and signatures are removed at every nesting level. Signed URLs are
-replaced before hashing, and validation errors never include rejected configuration values. Changing
-credentials or refreshing a signed URL therefore does not create a new logical pipeline input.
+authorization values, secrets, and signatures are removed at every nesting level. Signed URL query
+parameters and URL user information are removed before hashing while the resource location remains
+identity-bearing. Validation errors never include rejected configuration values. Changing
+credentials or refreshing a signature therefore does not create a new logical pipeline input.
 
 ```python
 from retail_intelligence.domain.identity import PipelineIdentity

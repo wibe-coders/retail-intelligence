@@ -41,9 +41,6 @@ _SIGNED_QUERY_PARTS = frozenset(
         "token",
     }
 )
-_SIGNED_URL_MARKER = "<signed-url-excluded>"
-
-
 def canonical_configuration_json(configuration: Mapping[str, Any] | str) -> str:
     """Return stable JSON after removing credentials and signed URL material.
 
@@ -130,8 +127,8 @@ def _canonical_value(value: Any) -> Any:
     if isinstance(value, Sequence) and not isinstance(value, (str, bytes, bytearray)):
         return [_canonical_value(item) for item in value]
     if value is None or isinstance(value, (str, bool, int)):
-        if isinstance(value, str) and _is_signed_url(value):
-            return _SIGNED_URL_MARKER
+        if isinstance(value, str):
+            return _configuration_text(value)
         return value
     if isinstance(value, float) and math.isfinite(value):
         return int(value) if value.is_integer() else value
@@ -145,19 +142,23 @@ def _is_sensitive_key(key: str) -> bool:
     return bool(parts & _SENSITIVE_KEY_PARTS or compact in _SENSITIVE_KEY_PARTS)
 
 
-def _is_signed_url(value: str) -> bool:
+def _configuration_text(value: str) -> str:
     try:
         parsed = urlsplit(value)
     except ValueError:
-        return False
+        return value
     if not parsed.scheme or not parsed.netloc:
-        return False
-    if parsed.username is not None or parsed.password is not None:
-        return True
+        return value
     query_keys = {
         "".join(filter(str.isalnum, key.casefold())) for key, _ in parse_qsl(parsed.query)
     }
-    return any(_is_signed_query_key(key) for key in query_keys)
+    contains_credentials = parsed.username is not None or parsed.password is not None
+    contains_signature = any(_is_signed_query_key(key) for key in query_keys)
+    if not contains_credentials and not contains_signature:
+        return value
+    query = "" if contains_signature else parsed.query
+    netloc = parsed.netloc.rsplit("@", 1)[-1]
+    return parsed._replace(netloc=netloc, query=query, fragment="").geturl()
 
 
 def _is_signed_query_key(key: str) -> bool:
