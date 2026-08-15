@@ -1,5 +1,5 @@
 # retail-intelligence
-Nvidia Spark Hack 2026
+NVIDIA Spark Hack 2026
 
 ## Implement Linear issues with Codex cloud
 
