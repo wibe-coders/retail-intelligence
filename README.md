@@ -3,8 +3,8 @@ Nvidia Spark Hack 2026
 
 ## Autonomous issue implementation
 
-Issues created by `varun10p`, `VishnuKartha`, or `visirion07` can trigger the dedicated EC2 Codex
-runner when any of those trusted users applies one of these labels:
+Issues created by `varun10p`, `VishnuKartha`, `visirion07`, or `nTamilselvan` can trigger the dedicated
+EC2 Codex runner when any of those trusted users applies one of these labels:
 
 - `auto` implements the issue and pushes `codex/issue-N`. It does not open a pull request or change
   `main`.
