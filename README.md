@@ -14,6 +14,33 @@ Run the complete test suite with:
 python -m unittest discover -s tests -v
 ```
 
+## Evidence domain contracts
+
+The framework-independent contracts under `retail_intelligence.domain` define the vocabulary shared
+by ingest, analytics, indexing, and query code:
+
+- `domain.media` exports UTC half-open `TimeRange` values, source identifiers, source metadata, and
+  complete, partial, or gap evidence windows.
+- `domain.intelligence` exports model observations, derived events, metrics, and insights. Every
+  stored intelligence object contains source identifiers, exact pipeline provenance, confidence,
+  retention, and links to its evidence. `ObservationKind.CAPTION` keeps generated captions separate
+  from derived events and user-facing facts.
+- `domain.query` exports citations and answers whose state is `supported`, `ambiguous`,
+  `unsupported`, or `out_of_retention`. A supported answer requires cited evidence; every other
+  state requires an explicit abstention reason.
+
+All public domain models are frozen dataclasses and expose `to_dict`, `from_dict`, `to_json`, and
+`from_json`. The serialized representation is plain JSON and does not require a web framework,
+database, or model SDK. Import public names from their owning subpackage, for example:
+
+```python
+from retail_intelligence.domain.media import SourceReference, TimeRange
+from retail_intelligence.domain.query import Answer, AnswerState
+```
+
+The `__all__` list in each domain subpackage is the intentional public API. Names in the private
+`domain._base` module are implementation details.
+
 ## Implement Linear issues with Codex cloud
 
 The repository uses the native Codex for Linear integration. Assigning a Linear issue to Codex or
