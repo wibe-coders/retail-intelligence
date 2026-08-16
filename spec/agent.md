@@ -8,8 +8,9 @@ change this document in the same review.
 
 The component specifications distinguish the foundation that exists today from the target system
 described below. The current components are the [evidence contracts](evidence-contracts/agent.md),
-the [data pipeline](data-pipeline/agent.md), and the
-[NVIDIA adapters](nvidia-adapters/agent.md).
+the [data pipeline](data-pipeline/agent.md), the
+[NVIDIA adapters](nvidia-adapters/agent.md), and the process-local
+[one-file vertical slice](vertical-slice/agent.md).
 
 ## Product
 
