@@ -25,22 +25,22 @@ The public models are immutable dataclasses grouped by their owning domain:
   matching abstention reason.
 
 These contracts and their validation rules are defined in
-`retail_intelligence/domain/media/__init__.py`,
-`retail_intelligence/domain/intelligence/__init__.py`, and
-`retail_intelligence/domain/query/__init__.py`. Each subpackage's `__all__` list is its public API;
-`retail_intelligence/domain/_base.py` is private shared machinery.
+`src/retail_intelligence/domain/media/__init__.py`,
+`src/retail_intelligence/domain/intelligence/__init__.py`, and
+`src/retail_intelligence/domain/query/__init__.py`. Each subpackage's `__all__` list is its public
+API; `src/retail_intelligence/domain/_base.py` is private shared machinery.
 
 Every domain model exposes `to_dict`, `from_dict`, `to_json`, and `from_json`. Serialization produces
 plain JSON containing explicit registered type tags, rejects unknown types or mismatched fields, and
 round-trips tuples, enums, and UTC datetimes without a framework, database, or model SDK. The shared
-implementation is in `retail_intelligence/domain/_base.py`.
+implementation is in `src/retail_intelligence/domain/_base.py`.
 
 ## Pipeline identity and idempotency
 
-`retail_intelligence/domain/identity.py` deterministically identifies a pipeline run, its evidence
-window, and each ordered observation. Source content checksum, UTC half-open time range, pipeline
-version, and configuration determine the shared identity. Observation kind and zero-based sequence
-distinguish normalized outputs from the same pipeline input.
+`src/retail_intelligence/domain/identity.py` deterministically identifies a pipeline run, its
+evidence window, and each ordered observation. Source content checksum, UTC half-open time range,
+pipeline version, and configuration determine the shared identity. Observation kind and zero-based
+sequence distinguish normalized outputs from the same pipeline input.
 
 Configuration is canonical JSON before hashing. Mapping order, JSON whitespace, integral float
 representation, and list-versus-tuple representation do not change an identifier. Credential-bearing
@@ -50,12 +50,13 @@ keys fail without including the rejected configuration in the error or traceback
 
 ## Persistence boundary
 
-`retail_intelligence/ports/storage.py` separates persistence into protocols for sources, evidence
-windows, observations and events, pipeline runs, and citations. Temporal queries require an exact
-store, camera, and recording reference plus a UTC half-open time range.
+`src/retail_intelligence/ports/storage.py` separates persistence into protocols for sources,
+evidence windows, observations and events, pipeline runs, and citations. Temporal queries require
+an exact store, camera, and recording reference plus a UTC half-open time range.
 
-`retail_intelligence/adapters/storage/in_memory.py` implements every port for deterministic tests and
-the one-camera experiment. It is process-local and is not a production database. Its behavior is:
+`src/retail_intelligence/adapters/storage/in_memory.py` implements every port for deterministic
+tests and the one-camera experiment. It is process-local and is not a production database. Its
+behavior is:
 
 - Saving equal immutable content under the same identifier is idempotent. Reusing an identifier for
   different content raises `ConflictingRecordError` and preserves the existing record.

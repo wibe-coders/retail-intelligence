@@ -9,10 +9,10 @@ canonical observations. Caption sampling and token admission are owned by the
 
 ## Observation normalization
 
-`retail_intelligence/adapters/nvidia/observations.py` converts RT-CV detections and tracks and RT-VLM
-captions into canonical `Observation` values. Input envelopes must identify the source, UTC time and
-frame bounds, model and version, configuration, pipeline run, creation time, retention class,
-evidence media, and separately retained vendor output.
+`src/retail_intelligence/adapters/nvidia/observations.py` converts RT-CV detections and tracks and
+RT-VLM captions into canonical `Observation` values. Input envelopes must identify the source, UTC
+time and frame bounds, model and version, configuration, pipeline run, creation time, retention
+class, evidence media, and separately retained vendor output.
 
 RT-CV detector class names are retained exactly as supplied; the adapter does not infer a retail
 concept from a vendor label. A detection produces a box observation and, when it has a track

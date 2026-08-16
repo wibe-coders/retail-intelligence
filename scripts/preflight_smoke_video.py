@@ -17,7 +17,8 @@ import sys
 from pathlib import Path
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(REPOSITORY_ROOT))
+SOURCE_ROOT = REPOSITORY_ROOT / "src"
+sys.path.insert(0, str(SOURCE_ROOT))
 
 from retail_intelligence.inference_budget import evaluate_inference_budget  # noqa: E402
 
