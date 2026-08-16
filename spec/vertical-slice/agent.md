@@ -35,35 +35,27 @@ The fixture uses `samples/hong-kong-passageway.mp4` and fake model adapters. It 
 camera/UTC citation, playable MP4 bytes through the authorized API, denial for another store,
 unsupported-question abstention, visible succeeded/indexed state, and stable counts after replay.
 
-## Live DGX Spark verification
+## Repeat with pinned local models on DGX Spark
 
-`scripts/run_dgx_e2e.py` is the target gate. It runs the fixture preflight, calls the standalone
-RT-VLM service through `RTVLMFileCaptionModel`, and passes the real caption result through the same
-`VerticalSlice` and `PublicApi` used by the credential-free acceptance tests. The live adapter
-uploads the bounded local MP4, requests one 12-second chunk with 80 fixed frames at 448x448, records
-the exact model and service release in observation provenance, and deletes the service-side upload
-in a `finally` cleanup path.
+Target verification uses the same `VerticalSlice` and `PublicApi` orchestration and replaces only
+`CaptionModel`, `AnswerModel`, and `EvidenceIndex` adapters. Before the run:
 
-The target gate then requires one succeeded run, one indexed window and observation, a supported
-answer with a camera/UTC citation, an explicit unsupported abstention, byte-identical authorized
-clip retrieval, and denial for another store. It replays the same input and requires that the model
-call count remain one.
+1. Record immutable container digests, model revisions, prompt checksum, embedding/index schema
+   version, and inference parameters in the pipeline configuration. Do not use mutable image tags or
+   model aliases.
+2. Keep the MP4, prompts, model weights, index, and responses on Spark-local storage. Disable runtime
+   egress and expose only the authenticated API service.
+3. Run `python3 scripts/preflight_smoke_video.py` and require every line to report `PASS`.
+4. Run the target harness with the pinned adapters twice against a clean durable store. Ask the
+   supported and unsupported fixture questions, fetch the citation through
+   `PublicApi.get_citation_clip`, and save both returned `SliceStatus` values.
+5. Require one succeeded job, one indexed window, and one index record after both runs. Also require
+   a camera and UTC citation, a playable authorized clip, denial for a different store, and an
+   explicit unsupported abstention.
 
-With a ready service and a key held only in the environment:
-
-```bash
-export RTVI_VLM_BASE_URL=http://localhost:8018
-read -rsp "RT-VLM API key: " RTVI_VLM_API_KEY
-echo
-export RTVI_VLM_API_KEY
-PYTHONPATH=src python3 scripts/run_dgx_e2e.py
-unset RTVI_VLM_API_KEY
-```
-
-The live gate intentionally retains process-local storage, indexing, and the evidence-only answer
-adapter. It proves the repository's one-file orchestration against real RT-VLM inference; it does
-not prove a durable database, production retrieval model, continuous RTSP ingestion, or the
-full-stack soak.
+Report the focused cloud command separately from the target preflight and target harness results.
+A fake-adapter pass proves orchestration only; it is not evidence that a local model ran or that the
+DGX Spark target passed.
 
 ## Acceptance cases
 

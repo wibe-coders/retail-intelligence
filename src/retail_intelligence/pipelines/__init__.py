@@ -1,9 +1,9 @@
 """Framework-independent pipeline orchestration."""
 
 from .file_ingest import FileWindowFormer, FrameTimestamp, TimestampIssue, WindowFormation
-from .vertical_slice import CaptionModelResult, SliceStatus, VerticalSlice
+from .vertical_slice import SliceStatus, VerticalSlice
 
 __all__ = [
-    "CaptionModelResult", "FileWindowFormer", "FrameTimestamp", "SliceStatus",
-    "TimestampIssue", "VerticalSlice", "WindowFormation",
+    "FileWindowFormer", "FrameTimestamp", "SliceStatus", "TimestampIssue",
+    "VerticalSlice", "WindowFormation",
 ]

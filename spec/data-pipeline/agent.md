@@ -167,22 +167,7 @@ checks the realized tensor dimensions and frame count before inference. Missing 
 produce a partial outcome; no frames produce a gap. A preprocessor that adds frames is rejected as
 partial evidence.
 
-`src/retail_intelligence/adapters/nvidia/rt_vlm_file.py` is the bounded whole-file target adapter.
-It uploads one local MP4 to standalone RT-VLM, sends explicit chunk, fixed-frame, and input-dimension
-settings, normalizes the returned caption with exact model/service provenance, and deletes the
-uploaded service copy even when caption parsing fails. It rejects missing, empty, oversized, and
-unsupported-filename local files before upload and returns sanitized transport errors.
-
-`scripts/run_dgx_e2e.py` combines that live adapter with the one-file vertical slice. It runs the
-approved fixture preflight, registers and windows all 323 presentation timestamps, performs one real
-caption call, stores and indexes the observation, exercises supported and unsupported questions,
-retrieves byte-identical cited media through store authorization, denies another store, and proves
-an identical replay does not call RT-VLM again. Its storage, index, and answer adapter are
-process-local; continuous ingestion remains unimplemented.
-
-The credential-free executable checks are in `tests/test_inference_budget.py`,
-`tests/test_caption_adapter.py`, and `tests/test_rt_vlm_file_caption_model.py`. The live target
-check is `scripts/run_dgx_e2e.py`.
+The executable checks are in `tests/test_inference_budget.py` and `tests/test_caption_adapter.py`.
 
 ## DGX Spark admission and backpressure
 
