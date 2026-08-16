@@ -3,7 +3,7 @@
 from dataclasses import dataclass, replace
 from hashlib import sha256
 from pathlib import Path
-from typing import Protocol
+from typing import Any, Mapping, Protocol
 
 from ..domain.identity import PipelineIdentity
 from ..domain.intelligence import (
@@ -20,7 +20,7 @@ from .file_ingest import FileWindowFormer
 
 
 class CaptionModel(Protocol):
-    def caption(self, source: Source, window_id: str) -> str: ...
+    def caption(self, source: Source, window_id: str) -> "CaptionModelResult": ...
 
 
 class AnswerModel(Protocol):
@@ -49,18 +49,48 @@ class SliceStatus:
     index_count: int
 
 
+@dataclass(frozen=True, slots=True)
+class CaptionModelResult:
+    text: str
+    model: str
+    model_version: str
+    vendor_output_reference: str
+
+    def __post_init__(self) -> None:
+        for value, name in (
+            (self.text, "text"),
+            (self.model, "model"),
+            (self.model_version, "model_version"),
+            (self.vendor_output_reference, "vendor_output_reference"),
+        ):
+            if not isinstance(value, str) or not value.strip():
+                raise ValueError(f"{name} is required")
+
+
 class VerticalSlice:
     """Runs registration, evidence creation, indexing, and cited Q&A."""
 
     PIPELINE_VERSION = "vertical-slice-v1"
     CONFIGURATION = {"caption_prompt": "observable activity", "window_seconds": 10}
 
-    def __init__(self, storage: VerticalSliceStorage, index: EvidenceIndex,
-                 caption_model: CaptionModel, answer_model: AnswerModel) -> None:
+    def __init__(
+        self,
+        storage: VerticalSliceStorage,
+        index: EvidenceIndex,
+        caption_model: CaptionModel,
+        answer_model: AnswerModel,
+        *,
+        pipeline_version: str = PIPELINE_VERSION,
+        configuration: Mapping[str, Any] | None = None,
+    ) -> None:
         self._storage = storage
         self._index = index
         self._caption_model = caption_model
         self._answer_model = answer_model
+        self._pipeline_version = pipeline_version
+        self._configuration = dict(
+            self.CONFIGURATION if configuration is None else configuration
+        )
 
     def process(self, source: Source, timestamps: tuple[int | None, ...]) -> SliceStatus:
         path = Path(source.media_locator)
@@ -71,17 +101,24 @@ class VerticalSlice:
         former = FileWindowFormer(self._storage)
         former.register(source)
         formation = former.form_windows(
-            source, timestamps, 10, self.PIPELINE_VERSION, self.CONFIGURATION
+            source,
+            timestamps,
+            self._configuration.get("window_seconds"),
+            self._pipeline_version,
+            self._configuration,
         )
         if len(formation.windows) != 1:
             raise ValueError("the vertical slice requires exactly one evidence window")
         window = formation.windows[0]
         identity = PipelineIdentity(
-            source.checksum, window.time_range, self.PIPELINE_VERSION, self.CONFIGURATION
+            source.checksum,
+            window.time_range,
+            self._pipeline_version,
+            self._configuration,
         )
         run = PipelineRun(
             identity.pipeline_run_id, source.reference, window.time_range,
-            self.PIPELINE_VERSION, identity.configuration_id, PipelineRunState.QUEUED,
+            self._pipeline_version, identity.configuration_id, PipelineRunState.QUEUED,
         )
         existing = self._storage.get_pipeline_run(run.pipeline_run_id)
         if existing is not None and existing.state is PipelineRunState.SUCCEEDED:
@@ -127,11 +164,12 @@ class VerticalSlice:
         return self.status(run)
 
     def _observation(self, source, window, identity):
+        caption = self._caption_model.caption(source, window.window_id)
         link = EvidenceLink(source.reference, window.window_id, window.time_range,
                             window.frame_range, source.media_locator)
         provenance = PipelineProvenance(
-            "caption-model", "fixture-v1", identity.configuration_id,
-            tuple((key, str(value)) for key, value in sorted(self.CONFIGURATION.items())),
+            caption.model, caption.model_version, identity.configuration_id,
+            tuple((key, str(value)) for key, value in sorted(self._configuration.items())),
             identity.pipeline_run_id,
         )
         context = IntelligenceContext(
@@ -140,8 +178,7 @@ class VerticalSlice:
         )
         return Observation(
             identity.observation_id(ObservationKind.CAPTION.value, 0),
-            ObservationKind.CAPTION, self._caption_model.caption(source, window.window_id),
-            context, "fixture://caption/one",
+            ObservationKind.CAPTION, caption.text, context, caption.vendor_output_reference,
         )
 
     @staticmethod
@@ -150,6 +187,6 @@ class VerticalSlice:
 
 
 __all__ = [
-    "AnswerModel", "CaptionModel", "EvidenceIndex", "SliceStatus", "VerticalSlice",
-    "VerticalSliceStorage",
+    "AnswerModel", "CaptionModel", "CaptionModelResult", "EvidenceIndex", "SliceStatus",
+    "VerticalSlice", "VerticalSliceStorage",
 ]

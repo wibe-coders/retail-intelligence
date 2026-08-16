@@ -21,6 +21,22 @@ python3 scripts/preflight_smoke_video.py
 
 Do not start the Spark inference run unless every check prints `PASS`.
 
+With the pinned standalone RT-VLM service ready, run the repository-owned live gate:
+
+```bash
+export RTVI_VLM_BASE_URL=http://localhost:8018
+read -rsp "RT-VLM API key: " RTVI_VLM_API_KEY
+echo
+export RTVI_VLM_API_KEY
+PYTHONPATH=src python3 scripts/run_dgx_e2e.py
+unset RTVI_VLM_API_KEY
+```
+
+This uploads and captions the approved file, then runs the real result through registration,
+windowing, observation storage, indexing, cited retrieval, authorization, and replay checks. See
+[the RET-56 DGX Spark report](docs/ret-56-dgx-spark-smoke-test.md) for service setup, observed
+results, limitations, and local video playback.
+
 ## Project documentation
 
 - [Product and architecture specification](spec/agent.md)
