@@ -6,9 +6,10 @@ This document refines the ingestion, analysis, and indexing parts of the
 [main specification](../agent.md). It owns the path from a camera or video file to indexed evidence.
 Natural-language retrieval, answer generation, and the web API are outside this boundary.
 
-The current package implements visual-token evaluation and the RT-VLM caption boundary through
-preprocessing and model-client invocation. Source ingestion, continuous execution, indexing
-infrastructure, and shared-resource admission are not implemented yet.
+The current package implements file-source registration and deterministic evidence windowing,
+visual-token evaluation, and the RT-VLM caption boundary through preprocessing and model-client
+invocation. Continuous execution, indexing infrastructure, and shared-resource admission are not
+implemented yet.
 
 The first accepted deployment processes one 1080p, 30 FPS, H.264 camera on one DGX Spark. More
 cameras are unsupported until the complete co-resident stack passes the capacity gates below.
@@ -144,6 +145,15 @@ range. Do not duplicate frames to reach the minimum. A low-frame-rate or damaged
 explicit gap or partial record.
 
 ### Implemented contract
+
+`src/retail_intelligence/pipelines/file_ingest.py` registers immutable file metadata through the
+source-storage port and forms non-overlapping windows on a UTC grid anchored by the source clock.
+Integer presentation timestamps select windows with half-open boundary semantics. Each input frame
+retains its original timestamp and reports `missing`, `duplicate`, and `out_of_order` faults; frames
+without a timestamp remain unassigned rather than receiving an invented time. The declared clock
+end closes the final window, which is partial when it is shorter than the requested duration.
+Window identifiers derive from the source checksum, exact UTC range, pipeline version, and
+configuration. Tests use only synthetic metadata.
 
 `src/retail_intelligence/inference_budget.py` evaluates final model-input dimensions and the actual
 selected frame count against this equation and range. Inputs must be positive. Its immutable result

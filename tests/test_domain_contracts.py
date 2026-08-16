@@ -79,7 +79,7 @@ class DomainContractTests(unittest.TestCase):
     def test_completeness_must_match_observed_frame_counts(self) -> None:
         invalid_states = (
             (300, 299, Completeness.COMPLETE),
-            (300, 300, Completeness.PARTIAL),
+            (300, 0, Completeness.PARTIAL),
             (300, 1, Completeness.GAP),
         )
         for expected, observed, completeness in invalid_states:
