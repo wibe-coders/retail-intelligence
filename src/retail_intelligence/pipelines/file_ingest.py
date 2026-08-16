@@ -3,6 +3,7 @@
 from dataclasses import dataclass
 from datetime import timedelta
 from enum import Enum
+from fractions import Fraction
 from math import ceil, floor, isfinite
 from typing import Any, Mapping
 
@@ -38,9 +39,9 @@ class FileWindowFormer:
         self._source_storage = source_storage
 
     def register(self, source: Source) -> Source:
-        if source.clock is None or source.frame_count is None:
-            raise ValueError("file sources require clock metadata and frame_count")
-        if source.checksum == "unspecified":
+        if source.clock is None or source.frame_range is None:
+            raise ValueError("file sources require clock metadata and frame_range")
+        if source.checksum is None:
             raise ValueError("file sources require a content checksum")
         return self._source_storage.save_source(source)
 
@@ -52,12 +53,12 @@ class FileWindowFormer:
         pipeline_version: str,
         configuration: Mapping[str, Any] | str,
     ) -> WindowFormation:
-        if source.clock is None or source.frame_count is None:
-            raise ValueError("file sources require clock metadata and frame_count")
-        if source.checksum == "unspecified":
+        if source.clock is None or source.frame_range is None:
+            raise ValueError("file sources require clock metadata and frame_range")
+        if source.checksum is None:
             raise ValueError("file sources require a content checksum")
-        if len(timestamps) != source.frame_count:
-            raise ValueError("timestamp count must match source frame_count")
+        if len(timestamps) != source.frame_range.end - source.frame_range.start:
+            raise ValueError("timestamp count must match source frame_range")
         if (
             isinstance(window_seconds, bool)
             or not isinstance(window_seconds, (int, float))
@@ -65,17 +66,18 @@ class FileWindowFormer:
             or window_seconds <= 0
         ):
             raise ValueError("window_seconds must be positive")
+        window_duration = Fraction(str(window_seconds))
 
-        ranges = self._ranges(source, window_seconds)
+        ranges = self._ranges(source, window_duration)
         assignments, frame_windows, records = self._assign(
-            source, timestamps, ranges, window_seconds
+            source, timestamps, ranges, window_duration
         )
         windows = tuple(
             self._window(
                 source,
                 interval,
                 assignments[index],
-                window_seconds,
+                window_duration,
                 pipeline_version,
                 configuration,
             )
@@ -94,33 +96,35 @@ class FileWindowFormer:
         return WindowFormation(windows, records)
 
     @staticmethod
-    def _ranges(source: Source, window_seconds: float) -> tuple[TimeRange, ...]:
+    def _ranges(source: Source, window_duration: Fraction) -> tuple[TimeRange, ...]:
         clock = source.clock
         assert clock is not None
-        duration = (
-            (clock.pts_end - clock.pts_origin)
-            * clock.time_base_numerator
-            / clock.time_base_denominator
+        duration = Fraction(
+            (clock.pts_end - clock.pts_origin) * clock.time_base_numerator,
+            clock.time_base_denominator,
         )
-        count = ceil(duration / window_seconds)
+        count = ceil(duration / window_duration)
         return tuple(
             TimeRange(
-                clock.utc_origin + timedelta(seconds=index * window_seconds),
                 clock.utc_origin
-                + timedelta(seconds=min((index + 1) * window_seconds, duration)),
+                + timedelta(seconds=float(index * window_duration)),
+                clock.utc_origin
+                + timedelta(
+                    seconds=float(min((index + 1) * window_duration, duration))
+                ),
             )
             for index in range(count)
         )
 
     @staticmethod
-    def _assign(source, timestamps, ranges, window_seconds):
+    def _assign(source, timestamps, ranges, window_duration):
         clock = source.clock
         assignments = {index: [] for index in range(len(ranges))}
         frame_windows = {}
         records = []
         seen = set()
         previous = None
-        for frame_index, pts in enumerate(timestamps):
+        for frame_index, pts in enumerate(timestamps, start=source.frame_range.start):
             issues = []
             if pts is None:
                 issues.append(TimestampIssue.MISSING)
@@ -133,13 +137,18 @@ class FileWindowFormer:
                     issues.append(TimestampIssue.OUT_OF_ORDER)
                 seen.add(pts)
                 previous = pts
-                seconds = (
-                    (pts - clock.pts_origin)
-                    * clock.time_base_numerator
-                    / clock.time_base_denominator
+                offset = Fraction(
+                    (pts - clock.pts_origin) * clock.time_base_numerator,
+                    clock.time_base_denominator,
                 )
-                if 0 <= seconds < (ranges[-1].end - clock.utc_origin).total_seconds():
-                    window_index = min(floor(seconds / window_seconds), len(ranges) - 1)
+                timeline_duration = Fraction(
+                    (clock.pts_end - clock.pts_origin) * clock.time_base_numerator,
+                    clock.time_base_denominator,
+                )
+                if 0 <= offset < timeline_duration:
+                    window_index = min(
+                        floor(offset / window_duration), len(ranges) - 1
+                    )
                     assignments[window_index].append(frame_index)
                     frame_windows[frame_index] = window_index
             records.append(FrameTimestamp(frame_index, pts, tuple(issues)))
@@ -147,15 +156,15 @@ class FileWindowFormer:
 
     @staticmethod
     def _window(
-        source, interval, frame_assignments, window_seconds, pipeline_version, configuration
+        source, interval, frame_assignments, window_duration, pipeline_version, configuration
     ):
         indices = tuple(frame_assignments)
         observed = len(indices)
         duration = (interval.end - interval.start).total_seconds()
-        expected = ceil(source.nominal_frame_rate * duration)
+        expected = ceil(Fraction(str(source.nominal_frame_rate)) * Fraction(str(duration)))
         if observed == 0:
             completeness = Completeness.GAP
-        elif duration < window_seconds or observed != expected:
+        elif Fraction(str(duration)) < window_duration or observed != expected:
             completeness = Completeness.PARTIAL
         else:
             completeness = Completeness.COMPLETE

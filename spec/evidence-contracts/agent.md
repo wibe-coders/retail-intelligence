@@ -30,7 +30,7 @@ These contracts and their validation rules are defined in
 `src/retail_intelligence/domain/query/__init__.py`. Each subpackage's `__all__` list is its public
 API; `src/retail_intelligence/domain/_base.py` is private shared machinery.
 
-Registered file sources also preserve the content checksum, declared frame count, and a
+Registered file sources also preserve the content checksum, declared half-open frame range, and a
 `SourceClock` mapping integer presentation timestamps to a bounded UTC timeline. A partial window
 contains at least one frame but may contain the nominal expected count when the source ends before
 a full window. It may exceed the nominal count when duplicate presentation timestamps are present;
