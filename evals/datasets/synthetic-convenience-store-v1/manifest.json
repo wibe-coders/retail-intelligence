@@ -17,45 +17,59 @@
     "x_axis": "left cooler wall toward the entrance and right wall",
     "y_axis": "checkout foreground toward the rear cooler wall",
     "z_axis": "floor toward ceiling",
-    "store_bounds_m": [11.0, 13.0, 3.0]
+    "store_bounds_m": [6.6, 10.8, 3.0]
   },
   "source_note": "The authored layout is inspired by one uncalibrated fisheye convenience-store image. Coordinates and dimensions are synthetic, not measurements or recovered geometry. No source pixels, logos, or product identities are reused in the generated item images.",
   "fixtures": [
     {
+      "fixture_id": "left-cold",
+      "zone_id": "refrigerated",
+      "name": "Left-wall glass-door cooler bank",
+      "bounds_m": [[0.0, 1.6, 0.05], [0.85, 9.95, 2.35]]
+    },
+    {
       "fixture_id": "rear-cold",
       "zone_id": "refrigerated",
       "name": "Rear glass-door cooler bank",
-      "bounds_m": [[0.7, 12.1, 0.05], [6.7, 12.95, 2.35]]
+      "bounds_m": [[0.7, 9.95, 0.05], [5.7, 10.75, 2.35]]
     },
     {
       "fixture_id": "gondola-a",
       "zone_id": "center-dry-goods",
       "name": "Center gondola A",
-      "bounds_m": [[1.3, 4.65, 0.0], [2.35, 11.35, 1.75]]
+      "bounds_m": [[1.8, 3.2, 0.0], [2.85, 8.8, 1.75]]
     },
     {
       "fixture_id": "gondola-b",
       "zone_id": "center-dry-goods",
       "name": "Center gondola B",
-      "bounds_m": [[3.25, 4.65, 0.0], [4.3, 11.35, 1.75]]
+      "bounds_m": [[4.1, 3.2, 0.0], [5.15, 8.8, 1.75]]
     },
     {
       "fixture_id": "checkout-rack",
       "zone_id": "checkout-impulse",
       "name": "Customer-side checkout rack",
-      "bounds_m": [[3.25, 0.55, 0.0], [8.45, 2.2, 1.15]]
+      "bounds_m": [[2.2, 0.5, 0.0], [5.0, 1.85, 1.15]]
     },
     {
-      "fixture_id": "fresh-island",
+      "fixture_id": "fresh-front",
       "zone_id": "fresh-grab-and-go",
-      "name": "Fresh and impulse island",
-      "bounds_m": [[2.75, 2.65, 0.0], [6.35, 4.15, 1.45]]
+      "name": "Front fresh-food cooler and display",
+      "bounds_m": [[0.95, 0.5, 0.0], [2.0, 1.85, 1.45]]
+    }
+  ],
+  "layout_features": [
+    {
+      "feature_id": "entrance",
+      "feature_type": "entrance",
+      "name": "Entrance and exit",
+      "footprint_m": [[5.2, 0.0], [6.4, 0.0], [6.4, 0.25], [5.2, 0.25]]
     },
     {
-      "fixture_id": "right-wall",
-      "zone_id": "health-household",
-      "name": "Right-wall health and household shelving",
-      "bounds_m": [[9.75, 4.8, 0.05], [10.85, 11.7, 2.1]]
+      "feature_id": "front-circulation",
+      "feature_type": "circulation",
+      "name": "Main customer circulation",
+      "footprint_m": [[0.95, 2.05], [5.3, 2.05], [5.3, 0.25], [6.5, 0.25], [6.5, 9.65], [5.3, 9.65], [5.3, 3.0], [0.95, 3.0]]
     }
   ]
 }

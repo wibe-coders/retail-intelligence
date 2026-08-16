@@ -4,10 +4,11 @@ This dataset describes 24 fictional SKU lots in a compact convenience store. It 
 inventory demos and tests without asserting that the products or geometry came from a real store.
 Every item has an authored 3D position, realistic retail metadata, and an original synthetic image.
 
-The layout is inspired by an uncalibrated fisheye store image: checkout in front, refrigerated cases
-at the rear, dry-goods gondolas in the center, a fresh-food island, and health/household shelves on
-the right wall. A single image cannot establish metric geometry, so the 11 m × 13 m × 3 m store and
-all fixture bounds are explicit modeling choices.
+The layout is inspired by an uncalibrated fisheye store image: checkout and a fresh-food display in
+front, coolers along the left and rear, and two dry-goods gondolas in the center. The right wall has
+no fixture; health and household essentials use the inward face of gondola B. A single image cannot
+establish metric geometry, so the narrow 6.6 m × 10.8 m × 3 m store and all fixture bounds are
+explicit modeling choices.
 
 ## Files
 
@@ -15,11 +16,19 @@ all fixture bounds are explicit modeling choices.
 - `inventory.json` contains one SKU-lot record per row.
 - `images/` contains one checksummed 512 × 512 PNG per SKU.
 - `IMAGE_PROMPTS.md` records the final image-generation prompt set.
+- `floor-map.svg` is the deterministic, scalable top-down map.
+- `floor-map.html` adds selectable markers and product details without external dependencies.
 
 Run the integrity, geometry, date, and image checks from the repository root:
 
 ```bash
 python3 scripts/validate_synthetic_inventory.py
+```
+
+Regenerate both floor-map outputs from the repository root:
+
+```bash
+python3 -m scripts.render_synthetic_floor_map
 ```
 
 ## Coordinate model
@@ -34,6 +43,10 @@ python3 scripts/validate_synthetic_inventory.py
 Positions are inside the fixture named by `fixture_id`; they are not camera-calibration output. A
 `facing_vector` indicates the direction the package front faces. `shelf_level` is one-based within
 its fixture and is descriptive, not a globally shared height.
+
+The floor map projects `[x, y, z]` to `[x, y]`, with the rear at the top. It draws exact x/y stacks
+from lower to higher z, so the highest item remains visible. Two-dimensional entrance and
+circulation polygons provide context without claiming they contain inventory.
 
 ## Inventory record
 
