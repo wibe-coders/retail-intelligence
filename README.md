@@ -21,7 +21,20 @@ python3 scripts/preflight_smoke_video.py
 
 Do not start the Spark inference run unless every check prints `PASS`.
 
-The completed DGX Spark result, pinned standalone RT-VLM setup, and exact repeat commands are in
+With the pinned standalone RT-VLM service ready, run the repository-owned smoke test:
+
+```bash
+export RTVI_VLM_BASE_URL=http://localhost:8018
+read -rsp "RT-VLM API key: " RTVI_VLM_API_KEY
+echo
+export RTVI_VLM_API_KEY
+python3 scripts/run_dgx_rt_vlm_smoke.py
+unset RTVI_VLM_API_KEY
+```
+
+The command runs the fixture preflight, uploads and captions the approved video twice without a
+service restart, verifies 80 reported frames and non-empty timestamped captions, and deletes the
+service-side upload. The measured result, pinned service setup, and manual API equivalent are in
 [the RET-56 smoke-test report](docs/ret-56-dgx-spark-smoke-test.md).
 
 ## Project documentation
