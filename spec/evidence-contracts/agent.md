@@ -30,6 +30,12 @@ These contracts and their validation rules are defined in
 `src/retail_intelligence/domain/query/__init__.py`. Each subpackage's `__all__` list is its public
 API; `src/retail_intelligence/domain/_base.py` is private shared machinery.
 
+Registered file sources also preserve the content checksum, declared frame count, and a
+`SourceClock` mapping integer presentation timestamps to a bounded UTC timeline. A partial window
+contains at least one frame but may contain the nominal expected count when the source ends before
+a full window. It may exceed the nominal count when duplicate presentation timestamps are present;
+that mismatch remains partial evidence instead of being discarded.
+
 Every domain model exposes `to_dict`, `from_dict`, `to_json`, and `from_json`. Serialization produces
 plain JSON containing explicit registered type tags, rejects unknown types or mismatched fields, and
 round-trips tuples, enums, and UTC datetimes without a framework, database, or model SDK. The shared

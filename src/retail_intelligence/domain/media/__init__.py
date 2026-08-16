@@ -77,6 +77,37 @@ class SourceReference(DomainModel):
 
 @register_model
 @dataclass(frozen=True, slots=True)
+class SourceClock(DomainModel):
+    """Mapping from integer presentation timestamps to a bounded UTC timeline."""
+
+    utc_origin: datetime
+    pts_origin: int
+    pts_end: int
+    time_base_numerator: int
+    time_base_denominator: int
+
+    def __post_init__(self) -> None:
+        if (
+            not isinstance(self.utc_origin, datetime)
+            or self.utc_origin.tzinfo is None
+            or self.utc_origin.utcoffset() != timezone.utc.utcoffset(self.utc_origin)
+        ):
+            raise ValueError("utc_origin must be timezone-aware UTC")
+        for value, name in (
+            (self.pts_origin, "pts_origin"),
+            (self.pts_end, "pts_end"),
+            (self.time_base_numerator, "time_base_numerator"),
+            (self.time_base_denominator, "time_base_denominator"),
+        ):
+            require_non_negative_integer(value, name)
+        if self.pts_end <= self.pts_origin:
+            raise ValueError("pts_end must be after pts_origin")
+        if self.time_base_numerator == 0 or self.time_base_denominator == 0:
+            raise ValueError("time base values must be positive")
+
+
+@register_model
+@dataclass(frozen=True, slots=True)
 class Source(DomainModel):
     source_id: str
     reference: SourceReference
@@ -86,11 +117,15 @@ class Source(DomainModel):
     height: int
     nominal_frame_rate: float
     retention_class: RetentionClass
+    checksum: str = "unspecified"
+    frame_count: int | None = None
+    clock: SourceClock | None = None
 
     def __post_init__(self) -> None:
         require_text(self.source_id, "source_id")
         require_text(self.media_locator, "media_locator")
         require_text(self.codec, "codec")
+        require_text(self.checksum, "checksum")
         require_non_negative_integer(self.width, "source width")
         require_non_negative_integer(self.height, "source height")
         if (
@@ -101,6 +136,10 @@ class Source(DomainModel):
             or self.nominal_frame_rate <= 0
         ):
             raise ValueError("source dimensions and frame rate must be positive")
+        if self.frame_count is not None:
+            require_non_negative_integer(self.frame_count, "frame_count")
+        if self.clock is not None and not isinstance(self.clock, SourceClock):
+            raise ValueError("clock must be SourceClock")
         if not isinstance(self.retention_class, RetentionClass):
             object.__setattr__(self, "retention_class", RetentionClass(self.retention_class))
 
@@ -124,8 +163,6 @@ class EvidenceWindow(DomainModel):
         require_text(self.configuration_id, "configuration_id")
         require_non_negative_integer(self.expected_frame_count, "expected_frame_count")
         require_non_negative_integer(self.observed_frame_count, "observed_frame_count")
-        if self.observed_frame_count > self.expected_frame_count:
-            raise ValueError("observed frames cannot exceed expected frames")
         if not isinstance(self.completeness, Completeness):
             object.__setattr__(self, "completeness", Completeness(self.completeness))
 
@@ -135,10 +172,8 @@ class EvidenceWindow(DomainModel):
             or self.observed_frame_count != self.expected_frame_count
         ):
             raise ValueError("complete windows require every expected frame")
-        if self.completeness is Completeness.PARTIAL and not (
-            0 < self.observed_frame_count < self.expected_frame_count
-        ):
-            raise ValueError("partial windows require some but not all expected frames")
+        if self.completeness is Completeness.PARTIAL and self.observed_frame_count == 0:
+            raise ValueError("partial windows require observed frames")
         if self.completeness is Completeness.GAP and self.observed_frame_count != 0:
             raise ValueError("gap windows cannot contain observed frames")
 
@@ -149,6 +184,7 @@ __all__ = [
     "FrameRange",
     "RetentionClass",
     "Source",
+    "SourceClock",
     "SourceReference",
     "TimeRange",
 ]
