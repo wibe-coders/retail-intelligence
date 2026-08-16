@@ -12,6 +12,10 @@ from ..domain.intelligence import (
 )
 from ..domain.media import Source
 from ..domain.query import Abstention, Answer, AnswerState, Citation
+from ..ports.storage import (
+    CitationStorage, EvidenceWindowStorage, IntelligenceStorage, PipelineRunStorage,
+    SourceStorage,
+)
 from .file_ingest import FileWindowFormer
 
 
@@ -30,6 +34,13 @@ class EvidenceIndex(Protocol):
     def count(self) -> int: ...
 
 
+class VerticalSliceStorage(
+    SourceStorage, EvidenceWindowStorage, IntelligenceStorage, PipelineRunStorage,
+    CitationStorage, Protocol,
+):
+    pass
+
+
 @dataclass(frozen=True, slots=True)
 class SliceStatus:
     pipeline_run: PipelineRun
@@ -44,7 +55,7 @@ class VerticalSlice:
     PIPELINE_VERSION = "vertical-slice-v1"
     CONFIGURATION = {"caption_prompt": "observable activity", "window_seconds": 10}
 
-    def __init__(self, storage, index: EvidenceIndex,
+    def __init__(self, storage: VerticalSliceStorage, index: EvidenceIndex,
                  caption_model: CaptionModel, answer_model: AnswerModel) -> None:
         self._storage = storage
         self._index = index
@@ -74,7 +85,7 @@ class VerticalSlice:
         )
         existing = self._storage.get_pipeline_run(run.pipeline_run_id)
         if existing is not None and existing.state is PipelineRunState.SUCCEEDED:
-            return self.status(existing)
+            return self._recover_index(existing)
         self._storage.save_pipeline_run(run)
         self._storage.save_pipeline_run(replace(run, state=PipelineRunState.RUNNING))
         self._storage.save_evidence_window(window)
@@ -104,6 +115,17 @@ class VerticalSlice:
         state = self._index.state(windows[0].window_id) if windows else PersistenceState.PENDING
         return SliceStatus(run, state, len(windows), self._index.count())
 
+    def _recover_index(self, run: PipelineRun) -> SliceStatus:
+        windows = self._storage.find_evidence_windows(run.source, run.time_range)
+        if len(windows) != 1:
+            raise RuntimeError("succeeded run must have exactly one durable evidence window")
+        observations = self._storage.find_observations(run.source, run.time_range)
+        if not observations:
+            raise RuntimeError("succeeded run must have durable observations")
+        for observation in observations:
+            self._index.upsert(observation)
+        return self.status(run)
+
     def _observation(self, source, window, identity):
         link = EvidenceLink(source.reference, window.window_id, window.time_range,
                             window.frame_range, source.media_locator)
@@ -127,4 +149,7 @@ class VerticalSlice:
         return "sha256:" + sha256(path.read_bytes()).hexdigest()
 
 
-__all__ = ["AnswerModel", "CaptionModel", "EvidenceIndex", "SliceStatus", "VerticalSlice"]
+__all__ = [
+    "AnswerModel", "CaptionModel", "EvidenceIndex", "SliceStatus", "VerticalSlice",
+    "VerticalSliceStorage",
+]

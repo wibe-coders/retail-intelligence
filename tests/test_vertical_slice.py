@@ -28,9 +28,12 @@ class VerticalSliceTests(unittest.TestCase):
         )
         self.storage = InMemoryEvidenceStorage()
         self.index = InMemoryEvidenceIndex()
+        self.caption_model = FixedCaptionModel(
+            "A person is walking through the passageway."
+        )
         self.slice = VerticalSlice(
             self.storage, self.index,
-            FixedCaptionModel("A person is walking through the passageway."),
+            self.caption_model,
             EvidenceOnlyAnswerModel(),
         )
         self.api = PublicApi(self.storage, self.slice)
@@ -44,7 +47,8 @@ class VerticalSliceTests(unittest.TestCase):
         self.assertEqual(first.index_state, PersistenceState.INDEXED)
         self.assertEqual((first.evidence_count, first.index_count), (1, 1))
         self.assertEqual(replay, first)
-        answer = self.api.ask(self.allowed, self.source, "What person is walking?")
+        self.assertEqual(self.caption_model.call_count, 1)
+        answer = self.api.ask(self.allowed, self.source.source_id, "What person is walking?")
         self.assertEqual(answer.state, AnswerState.SUPPORTED)
         citation = answer.citations[0]
         self.assertEqual(citation.evidence.source.camera_id, "camera-passageway")
@@ -57,15 +61,29 @@ class VerticalSliceTests(unittest.TestCase):
     def test_unsupported_question_abstains_and_clip_requires_store_access(self) -> None:
         self.slice.process(self.source, tuple(range(10)))
         unsupported = self.api.ask(
-            self.allowed, self.source, "How many red baskets are visible?"
+            self.allowed, self.source.source_id, "How many red baskets are visible?"
         )
         self.assertEqual(unsupported.state, AnswerState.UNSUPPORTED)
         self.assertIsNotNone(unsupported.abstention)
 
-        supported = self.api.ask(self.allowed, self.source, "Is a person walking?")
+        supported = self.api.ask(self.allowed, self.source.source_id, "Is a person walking?")
         denied = AuthorizationContext("operator-2", frozenset({"store-2"}))
         with self.assertRaises(AuthorizationError):
             self.api.get_citation_clip(denied, supported.citations[0].citation_id)
+
+    def test_replay_recovers_a_missing_index_without_rerunning_the_model(self) -> None:
+        first = self.slice.process(self.source, tuple(range(10)))
+        recovered_index = InMemoryEvidenceIndex()
+        recovered_slice = VerticalSlice(
+            self.storage, recovered_index, self.caption_model, EvidenceOnlyAnswerModel()
+        )
+
+        recovered = recovered_slice.process(self.source, tuple(range(10)))
+
+        self.assertEqual(recovered.pipeline_run, first.pipeline_run)
+        self.assertEqual(recovered.index_state, PersistenceState.INDEXED)
+        self.assertEqual(recovered.index_count, 1)
+        self.assertEqual(self.caption_model.call_count, 1)
 
     def test_processing_rejects_a_checksum_that_does_not_match_the_file(self) -> None:
         bad_source = Source(
