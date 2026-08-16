@@ -36,12 +36,74 @@ class SyntheticInventoryTests(unittest.TestCase):
         self.assertEqual(len(self.inventory["items"]), 24)
         self.assertEqual(self.manifest["expected_item_count"], 24)
         self.assertEqual(self.manifest["expected_image_count"], 24)
+        self.assertEqual(len(self.manifest["fixtures"]), 6)
+        self.assertEqual(len(self.manifest["layout_features"]), 2)
+        self.assertEqual(
+            self.manifest["coordinate_system"]["store_bounds_m"],
+            [6.6, 10.8, 3.0],
+        )
+        fixture_ids = {fixture["fixture_id"] for fixture in self.manifest["fixtures"]}
+        self.assertEqual(
+            {fixture_id for fixture_id in fixture_ids if fixture_id.startswith("gondola-")},
+            {"gondola-a", "gondola-b"},
+        )
+        self.assertNotIn("prepared-food", fixture_ids)
+        self.assertNotIn("fresh-island", fixture_ids)
+        self.assertNotIn("right-wall", fixture_ids)
+        self.assertNotIn("fresh-wall", fixture_ids)
+        self.assertIn("fresh-front", fixture_ids)
+        fresh_food = [
+            item
+            for item in self.inventory["items"]
+            if item["category"] in {"fresh-food", "fresh-produce", "fresh-bakery"}
+        ]
+        self.assertEqual(
+            {item["fixture_id"] for item in fresh_food},
+            {"fresh-front"},
+        )
+        essentials = [
+            item
+            for item in self.inventory["items"]
+            if item["category"]
+            in {"health", "travel-needs", "electronics-accessory", "household"}
+        ]
+        self.assertEqual(
+            {item["fixture_id"] for item in essentials},
+            {"gondola-b"},
+        )
         self.assertEqual(
             {item["image"]["path"] for item in self.inventory["items"]},
             {
                 path.relative_to(DATASET_DIRECTORY).as_posix()
                 for path in (DATASET_DIRECTORY / "images").glob("*.png")
             },
+        )
+
+    def test_compact_layout_retains_walkable_fixture_clearances(self) -> None:
+        fixtures = {
+            fixture["fixture_id"]: fixture["bounds_m"]
+            for fixture in self.manifest["fixtures"]
+        }
+
+        self.assertAlmostEqual(
+            fixtures["gondola-a"][0][0] - fixtures["left-cold"][1][0], 0.95
+        )
+        self.assertAlmostEqual(
+            fixtures["gondola-b"][0][0] - fixtures["gondola-a"][1][0], 1.25
+        )
+        self.assertAlmostEqual(
+            fixtures["rear-cold"][0][1] - fixtures["gondola-a"][1][1], 1.15
+        )
+        self.assertAlmostEqual(
+            fixtures["gondola-a"][0][1] - fixtures["checkout-rack"][1][1], 1.35
+        )
+        self.assertAlmostEqual(
+            fixtures["checkout-rack"][0][0] - fixtures["fresh-front"][1][0], 0.2
+        )
+        self.assertAlmostEqual(
+            self.manifest["coordinate_system"]["store_bounds_m"][0]
+            - fixtures["gondola-b"][1][0],
+            1.45,
         )
 
     def test_position_outside_store_and_fixture_is_rejected(self) -> None:
@@ -105,6 +167,24 @@ class SyntheticInventoryTests(unittest.TestCase):
         )
 
         self.assertIn("manifest.coordinate_system must be an object", errors)
+
+    def test_layout_feature_must_stay_inside_store(self) -> None:
+        errors = self.validate_mutation(
+            lambda manifest, _inventory: manifest["layout_features"][0][
+                "footprint_m"
+            ].__setitem__(0, [12.0, 0.0])
+        )
+
+        self.assertTrue(any("footprint_m must be inside the store" in error for error in errors))
+
+    def test_layout_feature_cannot_self_intersect(self) -> None:
+        errors = self.validate_mutation(
+            lambda manifest, _inventory: manifest["layout_features"][0].update(
+                footprint_m=[[8.0, 0.0], [10.0, 1.0], [8.0, 1.0], [10.0, 0.0]]
+            )
+        )
+
+        self.assertTrue(any("footprint_m cannot self-intersect" in error for error in errors))
 
     def test_truncated_png_structure_is_rejected(self) -> None:
         ihdr_payload = struct.pack(">IIBBBBB", 512, 512, 8, 6, 0, 0, 0)
