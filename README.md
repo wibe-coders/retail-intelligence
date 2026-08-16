@@ -27,6 +27,7 @@ Do not start the Spark inference run unless every check prints `PASS`.
 - [Evidence contracts](spec/evidence-contracts/agent.md)
 - [Data pipeline specification](spec/data-pipeline/agent.md)
 - [NVIDIA adapter specification](spec/nvidia-adapters/agent.md)
+- [Synthetic convenience-store inventory](evals/datasets/synthetic-convenience-store-v1/README.md)
 - [Retail video dataset review](docs/retail-video-datasets.md)
 
 The dataset review compares candidate evaluation data, usage terms, leakage risks, and

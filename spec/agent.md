@@ -10,7 +10,8 @@ The component specifications distinguish the foundation that exists today from t
 described below. The current components are the [evidence contracts](evidence-contracts/agent.md),
 the [data pipeline](data-pipeline/agent.md), the
 [NVIDIA adapters](nvidia-adapters/agent.md), and the process-local
-[one-file vertical slice](vertical-slice/agent.md).
+[one-file vertical slice](vertical-slice/agent.md), plus the
+[synthetic inventory evaluation dataset](synthetic-inventory/agent.md).
 
 ## Product
 
