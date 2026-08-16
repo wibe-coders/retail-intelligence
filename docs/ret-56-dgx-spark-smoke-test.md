@@ -202,7 +202,33 @@ printf 'Model: %s\n' "$MODEL_ID"
 curl -fsS "$BASE_URL/v1/version" | jq
 ```
 
-### 4. Upload and caption the approved video twice
+### 4. Run the repository-owned smoke test
+
+From the retail-intelligence checkout, load the API key without printing it and run:
+
+```bash
+export RTVI_VLM_BASE_URL=http://localhost:8018
+read -rsp "RT-VLM API key: " RTVI_VLM_API_KEY
+echo
+export RTVI_VLM_API_KEY
+python3 scripts/run_dgx_rt_vlm_smoke.py
+unset RTVI_VLM_API_KEY
+```
+
+The runner executes the immutable fixture preflight, retrieves the exact live model and service
+versions, uploads the approved MP4, sends two explicit 12-second fixed-frame requests at 448x448,
+requires 80 reported frames and a non-empty timestamped caption from each response, and deletes the
+uploaded service copy. Its JSON output contains no API key or service-side upload identifier.
+
+The live measurements below were recorded with the equivalent API sequence before this runner was
+added during review. The runner's request, response-validation, repeatability, cleanup, and
+credential-handling behavior have credential-free unit coverage:
+
+```bash
+PYTHONPATH=src python3 -m unittest tests.test_dgx_rt_vlm_smoke -v
+```
+
+### 5. Manual API equivalent
 
 Set the checkout path and upload the file:
 
