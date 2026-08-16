@@ -66,6 +66,7 @@ def validate_documents(
         errors.append("manifest.coordinate_system must be an object")
         store_bounds = None
     fixtures = _validate_fixtures(manifest.get("fixtures"), store_bounds, errors)
+    _validate_layout_features(manifest.get("layout_features"), store_bounds, errors)
 
     items = inventory.get("items")
     if not isinstance(items, list) or not items:
@@ -163,24 +164,129 @@ def _validate_fixtures(
         fixture_id = _required_text(fixture, "fixture_id", label, errors)
         _required_text(fixture, "zone_id", label, errors)
         _required_text(fixture, "name", label, errors)
-        bounds = fixture.get("bounds_m")
-        if (
-            not isinstance(bounds, list)
-            or len(bounds) != 2
-            or (minimum := _number_vector(bounds[0], f"{label}.bounds_m[0]", errors)) is None
-            or (maximum := _number_vector(bounds[1], f"{label}.bounds_m[1]", errors)) is None
-        ):
+        bounds = _validate_bounds(fixture.get("bounds_m"), label, store_bounds, errors)
+        if bounds is None:
             continue
-        if any(low >= high for low, high in zip(minimum, maximum)):
-            errors.append(f"{label}.bounds_m minimum must be below maximum")
-        if store_bounds and any(low < 0 or high > limit for low, high, limit in zip(minimum, maximum, store_bounds)):
-            errors.append(f"{label}.bounds_m must be inside the store")
+        minimum, maximum = bounds
         fixture["_validated_bounds"] = (minimum, maximum)
         if fixture_id:
             if fixture_id in fixtures:
                 errors.append(f"duplicate fixture_id: {fixture_id}")
             fixtures[fixture_id] = fixture
     return fixtures
+
+
+def _validate_layout_features(
+    value: Any, store_bounds: list[float] | None, errors: list[str]
+) -> None:
+    if not isinstance(value, list) or not value:
+        errors.append("manifest.layout_features must be a non-empty array")
+        return
+    seen_ids: set[str] = set()
+    for index, feature in enumerate(value):
+        label = f"manifest.layout_features[{index}]"
+        if not isinstance(feature, dict):
+            errors.append(f"{label} must be an object")
+            continue
+        feature_id = _required_text(feature, "feature_id", label, errors)
+        _required_text(feature, "name", label, errors)
+        if feature.get("feature_type") not in {"entrance", "circulation"}:
+            errors.append(f"{label}.feature_type is invalid")
+        _validate_footprint(feature.get("footprint_m"), label, store_bounds, errors)
+        _add_unique(feature_id, "layout feature_id", seen_ids, errors)
+
+
+def _validate_bounds(
+    value: Any,
+    label: str,
+    store_bounds: list[float] | None,
+    errors: list[str],
+) -> tuple[list[float], list[float]] | None:
+    if not isinstance(value, list) or len(value) != 2:
+        errors.append(f"{label}.bounds_m must contain minimum and maximum vectors")
+        return None
+    minimum = _number_vector(value[0], f"{label}.bounds_m[0]", errors)
+    maximum = _number_vector(value[1], f"{label}.bounds_m[1]", errors)
+    if minimum is None or maximum is None:
+        return None
+    if any(low >= high for low, high in zip(minimum, maximum)):
+        errors.append(f"{label}.bounds_m minimum must be below maximum")
+    if store_bounds and any(
+        low < 0 or high > limit
+        for low, high, limit in zip(minimum, maximum, store_bounds)
+    ):
+        errors.append(f"{label}.bounds_m must be inside the store")
+    return minimum, maximum
+
+
+def _validate_footprint(
+    value: Any,
+    label: str,
+    store_bounds: list[float] | None,
+    errors: list[str],
+) -> None:
+    if not isinstance(value, list) or len(value) < 3:
+        errors.append(f"{label}.footprint_m must contain at least three points")
+        return
+    points: list[list[float]] = []
+    for index, point in enumerate(value):
+        validated = _number_vector(
+            point, f"{label}.footprint_m[{index}]", errors, length=2
+        )
+        if validated is not None:
+            points.append(validated)
+    if len(points) != len(value):
+        return
+    if len({tuple(point) for point in points}) != len(points):
+        errors.append(f"{label}.footprint_m cannot repeat points")
+    if store_bounds and any(
+        x < 0 or y < 0 or x > store_bounds[0] or y > store_bounds[1]
+        for x, y in points
+    ):
+        errors.append(f"{label}.footprint_m must be inside the store")
+    area = sum(
+        x1 * y2 - x2 * y1
+        for (x1, y1), (x2, y2) in zip(points, points[1:] + points[:1])
+    )
+    if math.isclose(area, 0.0):
+        errors.append(f"{label}.footprint_m must enclose a non-zero area")
+    if _polygon_self_intersects(points):
+        errors.append(f"{label}.footprint_m cannot self-intersect")
+
+
+def _polygon_self_intersects(points: list[list[float]]) -> bool:
+    edges = list(zip(points, points[1:] + points[:1]))
+    for first_index, (first_start, first_end) in enumerate(edges):
+        for second_index, (second_start, second_end) in enumerate(edges):
+            if second_index <= first_index + 1:
+                continue
+            if first_index == 0 and second_index == len(edges) - 1:
+                continue
+            if _segments_cross(first_start, first_end, second_start, second_end):
+                return True
+    return False
+
+
+def _segments_cross(
+    first_start: list[float],
+    first_end: list[float],
+    second_start: list[float],
+    second_end: list[float],
+) -> bool:
+    def side(start: list[float], end: list[float], point: list[float]) -> float:
+        return (end[0] - start[0]) * (point[1] - start[1]) - (
+            end[1] - start[1]
+        ) * (point[0] - start[0])
+
+    first_sides = (
+        side(first_start, first_end, second_start),
+        side(first_start, first_end, second_end),
+    )
+    second_sides = (
+        side(second_start, second_end, first_start),
+        side(second_start, second_end, first_end),
+    )
+    return first_sides[0] * first_sides[1] < 0 and second_sides[0] * second_sides[1] < 0
 
 
 def _validate_item(

@@ -36,6 +36,8 @@ class SyntheticInventoryTests(unittest.TestCase):
         self.assertEqual(len(self.inventory["items"]), 24)
         self.assertEqual(self.manifest["expected_item_count"], 24)
         self.assertEqual(self.manifest["expected_image_count"], 24)
+        self.assertEqual(len(self.manifest["fixtures"]), 9)
+        self.assertEqual(len(self.manifest["layout_features"]), 2)
         self.assertEqual(
             {item["image"]["path"] for item in self.inventory["items"]},
             {
@@ -105,6 +107,24 @@ class SyntheticInventoryTests(unittest.TestCase):
         )
 
         self.assertIn("manifest.coordinate_system must be an object", errors)
+
+    def test_layout_feature_must_stay_inside_store(self) -> None:
+        errors = self.validate_mutation(
+            lambda manifest, _inventory: manifest["layout_features"][0][
+                "footprint_m"
+            ].__setitem__(0, [12.0, 0.0])
+        )
+
+        self.assertTrue(any("footprint_m must be inside the store" in error for error in errors))
+
+    def test_layout_feature_cannot_self_intersect(self) -> None:
+        errors = self.validate_mutation(
+            lambda manifest, _inventory: manifest["layout_features"][0].update(
+                footprint_m=[[8.0, 0.0], [10.0, 1.0], [8.0, 1.0], [10.0, 0.0]]
+            )
+        )
+
+        self.assertTrue(any("footprint_m cannot self-intersect" in error for error in errors))
 
     def test_truncated_png_structure_is_rejected(self) -> None:
         ihdr_payload = struct.pack(">IIBBBBB", 512, 512, 8, 6, 0, 0, 0)

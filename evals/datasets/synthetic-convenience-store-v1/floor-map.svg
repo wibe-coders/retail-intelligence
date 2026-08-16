@@ -1,0 +1,143 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="865" viewBox="0 0 1200 865" role="img" aria-labelledby="map-title map-description">
+<title id="map-title">Synthetic Convenience Store Inventory top-down floor map</title>
+<desc id="map-description">Fixtures are drawn to scale from authored bounds. Numbered inventory markers use x and y position; z controls drawing order.</desc>
+<defs>
+  <pattern id="entrance-stripes" width="10" height="10" patternUnits="userSpaceOnUse"
+    patternTransform="rotate(45)"><rect width="5" height="10" fill="#bbf7d0"/></pattern>
+</defs>
+<style>
+  .store-floor { fill: #f8fafc; }
+  .store-outline { fill: none; stroke: #0f172a; stroke-width: 4; }
+  .grid-line { stroke: #cbd5e1; stroke-width: 1; stroke-dasharray: 2 5; }
+  .grid-label { fill: #64748b; font: 10px ui-sans-serif, system-ui, sans-serif; }
+  .fixture { stroke: #475569; stroke-width: 1.5; }
+  .fixture-label { fill: #334155; font: 10px ui-sans-serif, system-ui, sans-serif;
+    text-anchor: middle; dominant-baseline: middle; pointer-events: none; }
+  .feature { stroke-width: 2; }
+  .feature-label { fill: #475569; font: 10px ui-sans-serif, system-ui, sans-serif;
+    text-anchor: middle; dominant-baseline: middle; }
+  .marker-dot { stroke: white; stroke-width: 2; }
+  .marker-number { fill: white; font: bold 9px ui-sans-serif, system-ui, sans-serif;
+    text-anchor: middle; dominant-baseline: middle; pointer-events: none; }
+  .legend-heading { fill: #0f172a; font: bold 15px ui-sans-serif, system-ui, sans-serif; }
+  .legend-text { fill: #334155; font: 11px ui-sans-serif, system-ui, sans-serif; }
+  .orientation { fill: #334155; font: bold 12px ui-sans-serif, system-ui, sans-serif;
+    text-anchor: middle; letter-spacing: 1px; }
+</style>
+<rect class="store-floor" x="70" y="70" width="605.0" height="715.0"/>
+<line class="grid-line" x1="70" y1="70" x2="70" y2="785.0"/>
+<text class="grid-label" x="73" y="780.0">x=0</text>
+<line class="grid-line" x1="125" y1="70" x2="125" y2="785.0"/>
+<text class="grid-label" x="128" y="780.0">x=1</text>
+<line class="grid-line" x1="180" y1="70" x2="180" y2="785.0"/>
+<text class="grid-label" x="183" y="780.0">x=2</text>
+<line class="grid-line" x1="235" y1="70" x2="235" y2="785.0"/>
+<text class="grid-label" x="238" y="780.0">x=3</text>
+<line class="grid-line" x1="290" y1="70" x2="290" y2="785.0"/>
+<text class="grid-label" x="293" y="780.0">x=4</text>
+<line class="grid-line" x1="345" y1="70" x2="345" y2="785.0"/>
+<text class="grid-label" x="348" y="780.0">x=5</text>
+<line class="grid-line" x1="400" y1="70" x2="400" y2="785.0"/>
+<text class="grid-label" x="403" y="780.0">x=6</text>
+<line class="grid-line" x1="455" y1="70" x2="455" y2="785.0"/>
+<text class="grid-label" x="458" y="780.0">x=7</text>
+<line class="grid-line" x1="510" y1="70" x2="510" y2="785.0"/>
+<text class="grid-label" x="513" y="780.0">x=8</text>
+<line class="grid-line" x1="565" y1="70" x2="565" y2="785.0"/>
+<text class="grid-label" x="568" y="780.0">x=9</text>
+<line class="grid-line" x1="620" y1="70" x2="620" y2="785.0"/>
+<text class="grid-label" x="623" y="780.0">x=10</text>
+<line class="grid-line" x1="675" y1="70" x2="675" y2="785.0"/>
+<text class="grid-label" x="678" y="780.0">x=11</text>
+<line class="grid-line" x1="70" y1="785.0" x2="675.0" y2="785.0"/>
+<text class="grid-label" x="73" y="782.0">y=0</text>
+<line class="grid-line" x1="70" y1="730.0" x2="675.0" y2="730.0"/>
+<text class="grid-label" x="73" y="727.0">y=1</text>
+<line class="grid-line" x1="70" y1="675.0" x2="675.0" y2="675.0"/>
+<text class="grid-label" x="73" y="672.0">y=2</text>
+<line class="grid-line" x1="70" y1="620.0" x2="675.0" y2="620.0"/>
+<text class="grid-label" x="73" y="617.0">y=3</text>
+<line class="grid-line" x1="70" y1="565.0" x2="675.0" y2="565.0"/>
+<text class="grid-label" x="73" y="562.0">y=4</text>
+<line class="grid-line" x1="70" y1="510.0" x2="675.0" y2="510.0"/>
+<text class="grid-label" x="73" y="507.0">y=5</text>
+<line class="grid-line" x1="70" y1="455.0" x2="675.0" y2="455.0"/>
+<text class="grid-label" x="73" y="452.0">y=6</text>
+<line class="grid-line" x1="70" y1="400.0" x2="675.0" y2="400.0"/>
+<text class="grid-label" x="73" y="397.0">y=7</text>
+<line class="grid-line" x1="70" y1="345.0" x2="675.0" y2="345.0"/>
+<text class="grid-label" x="73" y="342.0">y=8</text>
+<line class="grid-line" x1="70" y1="290.0" x2="675.0" y2="290.0"/>
+<text class="grid-label" x="73" y="287.0">y=9</text>
+<line class="grid-line" x1="70" y1="235.0" x2="675.0" y2="235.0"/>
+<text class="grid-label" x="73" y="232.0">y=10</text>
+<line class="grid-line" x1="70" y1="180.0" x2="675.0" y2="180.0"/>
+<text class="grid-label" x="73" y="177.0">y=11</text>
+<line class="grid-line" x1="70" y1="125.0" x2="675.0" y2="125.0"/>
+<text class="grid-label" x="73" y="122.0">y=12</text>
+<line class="grid-line" x1="70" y1="70.0" x2="675.0" y2="70.0"/>
+<text class="grid-label" x="73" y="67.0">y=13</text>
+<g data-feature-id="entrance"><title>Entrance and exit</title><polygon class="feature" points="543.0,785.0 642.0,785.0 642.0,771.25 543.0,771.25" fill="url(#entrance-stripes)" stroke="#16a34a"/><text class="feature-label" x="592.5" y="778.125">Entrance</text></g>
+<g data-feature-id="front-circulation"><title>Front and right-side circulation</title><polygon class="feature" points="430.25,771.25 661.25,771.25 661.25,532.0 589.75,532.0 589.75,212.99999999999997 430.25,212.99999999999997" fill="#f1f5f9" stroke="#94a3b8" stroke-dasharray="8 6"/><text class="feature-label" x="560.4166666666666" y="505.4166666666667">Front and right-side circulation</text></g>
+<g data-fixture-id="left-cold"><title>Left-wall glass-door cooler bank</title><rect class="fixture" x="70.0" y="119.50000000000003" width="46.75" height="566.5" fill="#dbeafe" rx="3"/><text class="fixture-label" x="93.375" y="402.75" transform="rotate(-90 93.375 402.75)">Left coolers</text></g>
+<g data-fixture-id="rear-cold"><title>Rear glass-door cooler bank</title><rect class="fixture" x="108.5" y="72.75000000000004" width="330.0" height="46.749999999999986" fill="#dbeafe" rx="3"/><text class="fixture-label" x="273.5" y="96.12500000000003">Rear coolers</text></g>
+<g data-fixture-id="gondola-a"><title>Center gondola A</title><rect class="fixture" x="141.5" y="160.75" width="57.75" height="368.5" fill="#fef3c7" rx="3"/><text class="fixture-label" x="170.375" y="345.0" transform="rotate(-90 170.375 345.0)">Gondola A</text></g>
+<g data-fixture-id="gondola-b"><title>Center gondola B</title><rect class="fixture" x="248.75" y="160.75" width="57.75" height="368.5" fill="#fef3c7" rx="3"/><text class="fixture-label" x="277.625" y="345.0" transform="rotate(-90 277.625 345.0)">Gondola B</text></g>
+<g data-fixture-id="gondola-c"><title>Center gondola C</title><rect class="fixture" x="356.0" y="160.75" width="57.75" height="368.5" fill="#fef3c7" rx="3"/><text class="fixture-label" x="384.875" y="345.0" transform="rotate(-90 384.875 345.0)">Gondola C</text></g>
+<g data-fixture-id="checkout-rack"><title>Customer-side checkout rack</title><rect class="fixture" x="248.75" y="664.0" width="286.0" height="90.75" fill="#ede9fe" rx="3"/><text class="fixture-label" x="391.75" y="709.375">Checkout</text></g>
+<g data-fixture-id="fresh-island"><title>Fresh and impulse island</title><rect class="fixture" x="221.25" y="556.75" width="198.0" height="82.5" fill="#dcfce7" rx="3"/><text class="fixture-label" x="320.25" y="598.0">Fresh island</text></g>
+<g data-fixture-id="right-wall"><title>Right-wall health and household shelving</title><rect class="fixture" x="606.25" y="141.50000000000006" width="60.5" height="379.49999999999994" fill="#e0f2fe" rx="3"/><text class="fixture-label" x="636.5" y="331.25" transform="rotate(-90 636.5 331.25)">Health / household</text></g>
+<g data-fixture-id="prepared-food"><title>Prepared food and coffee counter</title><rect class="fixture" x="455.0" y="100.25000000000004" width="140.25" height="98.99999999999993" fill="#ffedd5" rx="3"/><text class="fixture-label" x="525.125" y="149.75">Prepared food / coffee</text></g>
+<a href="images/syn-snk-006.png" target="_blank"><g class="inventory-marker" tabindex="0" role="button" data-item-id="inv-012" data-z="0.604"><title>12. BrightMint Spearmint Gum — SYN-SNK-006 — [4.15, 2.12, 0.604] m</title><circle class="marker-dot" cx="298.25" cy="668.4" r="10" fill="#8b5cf6"/><text class="marker-number" x="298.25" y="668.9">12</text></g></a>
+<a href="images/syn-bev-002.png" target="_blank"><g class="inventory-marker" tabindex="0" role="button" data-item-id="inv-002" data-z="0.671"><title>2. Metro Classic Cola — SYN-BEV-002 — [1.8, 12.5, 0.671] m</title><circle class="marker-dot" cx="169.0" cy="97.5" r="10" fill="#1677ff"/><text class="marker-number" x="169.0" y="98.0">2</text></g></a>
+<a href="images/syn-hhl-003.png" target="_blank"><g class="inventory-marker" tabindex="0" role="button" data-item-id="inv-021" data-z="0.679"><title>21. PocketSoft Facial Tissues — SYN-HHL-003 — [10.35, 7.4, 0.679] m</title><circle class="marker-dot" cx="639.25" cy="378.0" r="10" fill="#0891b2"/><text class="marker-number" x="639.25" y="378.5">21</text></g></a>
+<a href="images/syn-bev-001.png" target="_blank"><g class="inventory-marker" tabindex="0" role="button" data-item-id="inv-001" data-z="0.688"><title>1. Harbor Spring Still Water — SYN-BEV-001 — [1.0, 12.5, 0.688] m</title><circle class="marker-dot" cx="125.0" cy="97.5" r="10" fill="#1677ff"/><text class="marker-number" x="125.0" y="98.0">1</text></g></a>
+<a href="images/syn-bev-004.png" target="_blank"><g class="inventory-marker" tabindex="0" role="button" data-item-id="inv-004" data-z="0.702"><title>4. Sunny Vale Orange Juice — SYN-BEV-004 — [3.4, 12.5, 0.702] m</title><circle class="marker-dot" cx="257.0" cy="97.5" r="10" fill="#1677ff"/><text class="marker-number" x="257.0" y="98.0">4</text></g></a>
+<a href="images/syn-snk-004.png" target="_blank"><g class="inventory-marker" tabindex="0" role="button" data-item-id="inv-010" data-z="0.706"><title>10. Berry Patch Fruit Gummies — SYN-SNK-004 — [4.22, 5.2, 0.706] m</title><circle class="marker-dot" cx="302.1" cy="499.0" r="10" fill="#db2777"/><text class="marker-number" x="302.1" y="499.5">10</text></g></a>
+<a href="images/syn-snk-001.png" target="_blank"><g class="inventory-marker" tabindex="0" role="button" data-item-id="inv-007" data-z="0.725"><title>7. Ridge Cut Sea Salt Chips — SYN-SNK-001 — [2.25, 5.2, 0.725] m</title><circle class="marker-dot" cx="193.75" cy="499.0" r="10" fill="#f59e0b"/><text class="marker-number" x="193.75" y="499.5">7</text></g></a>
+<a href="images/syn-snk-002.png" target="_blank"><g class="inventory-marker" tabindex="0" role="button" data-item-id="inv-008" data-z="0.731"><title>8. Mesa Fire Chili-Lime Corn Crisps — SYN-SNK-002 — [2.25, 6.1, 0.731] m</title><circle class="marker-dot" cx="193.75" cy="449.5" r="10" fill="#f59e0b"/><text class="marker-number" x="193.75" y="450.0">8</text></g></a>
+<a href="images/syn-hhl-006.png" target="_blank"><g class="inventory-marker" tabindex="0" role="button" data-item-id="inv-024" data-z="0.752"><title>24. Fresh Basin Liquid Laundry Wash — SYN-HHL-006 — [10.35, 10.4, 0.752] m</title><circle class="marker-dot" cx="639.25" cy="212.99999999999997" r="10" fill="#7c3aed"/><text class="marker-number" x="639.25" y="213.49999999999997">24</text></g></a>
+<a href="images/syn-frs-003.png" target="_blank"><g class="inventory-marker" tabindex="0" role="button" data-item-id="inv-015" data-z="0.894"><title>15. Morning Mill Berry Yogurt Parfait — SYN-FRS-003 — [4.75, 3.25, 0.894] m</title><circle class="marker-dot" cx="331.25" cy="606.25" r="10" fill="#16a34a"/><text class="marker-number" x="331.25" y="606.75">15</text></g></a>
+<a href="images/syn-frs-001.png" target="_blank"><g class="inventory-marker" tabindex="0" role="button" data-item-id="inv-013" data-z="0.913"><title>13. Corner Kitchen Turkey Club — SYN-FRS-001 — [3.15, 3.25, 0.913] m</title><circle class="marker-dot" cx="243.25" cy="606.25" r="10" fill="#16a34a"/><text class="marker-number" x="243.25" y="606.75">13</text></g></a>
+<a href="images/syn-frs-002.png" target="_blank"><g class="inventory-marker" tabindex="0" role="button" data-item-id="inv-014" data-z="0.932"><title>14. Corner Kitchen Garden Wrap — SYN-FRS-002 — [3.95, 3.25, 0.932] m</title><circle class="marker-dot" cx="287.25" cy="606.25" r="10" fill="#16a34a"/><text class="marker-number" x="287.25" y="606.75">14</text></g></a>
+<a href="images/syn-bev-003.png" target="_blank"><g class="inventory-marker" tabindex="0" role="button" data-item-id="inv-003" data-z="0.971"><title>3. Lime Current Sparkling Water — SYN-BEV-003 — [2.6, 12.5, 0.971] m</title><circle class="marker-dot" cx="213.0" cy="97.5" r="10" fill="#1677ff"/><text class="marker-number" x="213.0" y="98.0">3</text></g></a>
+<a href="images/syn-bev-005.png" target="_blank"><g class="inventory-marker" tabindex="0" role="button" data-item-id="inv-005" data-z="1.002"><title>5. Night Owl Cold Brew — SYN-BEV-005 — [4.2, 12.5, 1.002] m</title><circle class="marker-dot" cx="301.0" cy="97.5" r="10" fill="#1677ff"/><text class="marker-number" x="301.0" y="98.0">5</text></g></a>
+<a href="images/syn-snk-003.png" target="_blank"><g class="inventory-marker" tabindex="0" role="button" data-item-id="inv-009" data-z="1.016"><title>9. Cocoa Foundry Caramel Bar — SYN-SNK-003 — [2.25, 7.0, 1.016] m</title><circle class="marker-dot" cx="193.75" cy="400.0" r="10" fill="#db2777"/><text class="marker-number" x="193.75" y="400.5">9</text></g></a>
+<a href="images/syn-snk-005.png" target="_blank"><g class="inventory-marker" tabindex="0" role="button" data-item-id="inv-011" data-z="1.023"><title>11. Trail House Cranberry Nut Mix — SYN-SNK-005 — [4.22, 6.1, 1.023] m</title><circle class="marker-dot" cx="302.1" cy="449.5" r="10" fill="#f59e0b"/><text class="marker-number" x="302.1" y="450.0">11</text></g></a>
+<a href="images/syn-hhl-001.png" target="_blank"><g class="inventory-marker" tabindex="0" role="button" data-item-id="inv-019" data-z="1.045"><title>19. Relief Harbor Pain Reliever — SYN-HHL-001 — [10.35, 5.4, 1.045] m</title><circle class="marker-dot" cx="639.25" cy="488.0" r="10" fill="#dc2626"/><text class="marker-number" x="639.25" y="488.5">19</text></g></a>
+<a href="images/syn-frs-004.png" target="_blank"><g class="inventory-marker" tabindex="0" role="button" data-item-id="inv-016" data-z="1.088"><title>16. Orchard Cup Mixed Fruit — SYN-FRS-004 — [5.55, 3.25, 1.088] m</title><circle class="marker-dot" cx="375.25" cy="606.25" r="10" fill="#16a34a"/><text class="marker-number" x="375.25" y="606.75">16</text></g></a>
+<a href="images/syn-frs-006.png" target="_blank"><g class="inventory-marker" tabindex="0" role="button" data-item-id="inv-018" data-z="1.101"><title>18. Blue Hill Blueberry Muffin — SYN-FRS-006 — [4.45, 3.75, 1.101] m</title><circle class="marker-dot" cx="314.75" cy="578.75" r="10" fill="#b45309"/><text class="marker-number" x="314.75" y="579.25">18</text></g></a>
+<a href="images/syn-frs-005.png" target="_blank"><g class="inventory-marker" tabindex="0" role="button" data-item-id="inv-017" data-z="1.146"><title>17. Sunny Acre Single Banana — SYN-FRS-005 — [3.55, 3.75, 1.146] m</title><circle class="marker-dot" cx="265.25" cy="578.75" r="10" fill="#65a30d"/><text class="marker-number" x="265.25" y="579.25">17</text></g></a>
+<a href="images/syn-bev-006.png" target="_blank"><g class="inventory-marker" tabindex="0" role="button" data-item-id="inv-006" data-z="1.324"><title>6. Blue Arc Energy Drink — SYN-BEV-006 — [5.0, 12.5, 1.324] m</title><circle class="marker-dot" cx="345.0" cy="97.5" r="10" fill="#1677ff"/><text class="marker-number" x="345.0" y="98.0">6</text></g></a>
+<a href="images/syn-hhl-002.png" target="_blank"><g class="inventory-marker" tabindex="0" role="button" data-item-id="inv-020" data-z="1.404"><title>20. Calm Tide Antacid — SYN-HHL-002 — [10.35, 6.4, 1.404] m</title><circle class="marker-dot" cx="639.25" cy="433.0" r="10" fill="#dc2626"/><text class="marker-number" x="639.25" y="433.5">20</text></g></a>
+<a href="images/syn-hhl-004.png" target="_blank"><g class="inventory-marker" tabindex="0" role="button" data-item-id="inv-022" data-z="1.42"><title>22. ClearPath USB-C Charging Cable — SYN-HHL-004 — [10.35, 8.4, 1.42] m</title><circle class="marker-dot" cx="639.25" cy="323.0" r="10" fill="#475569"/><text class="marker-number" x="639.25" y="323.5">22</text></g></a>
+<a href="images/syn-hhl-005.png" target="_blank"><g class="inventory-marker" tabindex="0" role="button" data-item-id="inv-023" data-z="1.776"><title>23. North Current AA Batteries — SYN-HHL-005 — [10.35, 9.4, 1.776] m</title><circle class="marker-dot" cx="639.25" cy="268.0" r="10" fill="#475569"/><text class="marker-number" x="639.25" y="268.5">23</text></g></a>
+<text class="legend-heading" x="720" y="80">Inventory</text>
+<circle cx="728" cy="100" r="8" fill="#1677ff"/><text class="marker-number" x="728" y="100.5">1</text><text class="legend-text" x="743" y="104">Harbor Spring Still Water</text>
+<circle cx="728" cy="128" r="8" fill="#1677ff"/><text class="marker-number" x="728" y="128.5">2</text><text class="legend-text" x="743" y="132">Metro Classic Cola</text>
+<circle cx="728" cy="156" r="8" fill="#1677ff"/><text class="marker-number" x="728" y="156.5">3</text><text class="legend-text" x="743" y="160">Lime Current Sparkling Water</text>
+<circle cx="728" cy="184" r="8" fill="#1677ff"/><text class="marker-number" x="728" y="184.5">4</text><text class="legend-text" x="743" y="188">Sunny Vale Orange Juice</text>
+<circle cx="728" cy="212" r="8" fill="#1677ff"/><text class="marker-number" x="728" y="212.5">5</text><text class="legend-text" x="743" y="216">Night Owl Cold Brew</text>
+<circle cx="728" cy="240" r="8" fill="#1677ff"/><text class="marker-number" x="728" y="240.5">6</text><text class="legend-text" x="743" y="244">Blue Arc Energy Drink</text>
+<circle cx="728" cy="268" r="8" fill="#f59e0b"/><text class="marker-number" x="728" y="268.5">7</text><text class="legend-text" x="743" y="272">Ridge Cut Sea Salt Chips</text>
+<circle cx="728" cy="296" r="8" fill="#f59e0b"/><text class="marker-number" x="728" y="296.5">8</text><text class="legend-text" x="743" y="300">Mesa Fire Chili-Lime Corn Crisps</text>
+<circle cx="728" cy="324" r="8" fill="#db2777"/><text class="marker-number" x="728" y="324.5">9</text><text class="legend-text" x="743" y="328">Cocoa Foundry Caramel Bar</text>
+<circle cx="728" cy="352" r="8" fill="#db2777"/><text class="marker-number" x="728" y="352.5">10</text><text class="legend-text" x="743" y="356">Berry Patch Fruit Gummies</text>
+<circle cx="728" cy="380" r="8" fill="#f59e0b"/><text class="marker-number" x="728" y="380.5">11</text><text class="legend-text" x="743" y="384">Trail House Cranberry Nut Mix</text>
+<circle cx="728" cy="408" r="8" fill="#8b5cf6"/><text class="marker-number" x="728" y="408.5">12</text><text class="legend-text" x="743" y="412">BrightMint Spearmint Gum</text>
+<circle cx="728" cy="436" r="8" fill="#16a34a"/><text class="marker-number" x="728" y="436.5">13</text><text class="legend-text" x="743" y="440">Corner Kitchen Turkey Club</text>
+<circle cx="728" cy="464" r="8" fill="#16a34a"/><text class="marker-number" x="728" y="464.5">14</text><text class="legend-text" x="743" y="468">Corner Kitchen Garden Wrap</text>
+<circle cx="728" cy="492" r="8" fill="#16a34a"/><text class="marker-number" x="728" y="492.5">15</text><text class="legend-text" x="743" y="496">Morning Mill Berry Yogurt Par…</text>
+<circle cx="728" cy="520" r="8" fill="#16a34a"/><text class="marker-number" x="728" y="520.5">16</text><text class="legend-text" x="743" y="524">Orchard Cup Mixed Fruit</text>
+<circle cx="728" cy="548" r="8" fill="#65a30d"/><text class="marker-number" x="728" y="548.5">17</text><text class="legend-text" x="743" y="552">Sunny Acre Single Banana</text>
+<circle cx="728" cy="576" r="8" fill="#b45309"/><text class="marker-number" x="728" y="576.5">18</text><text class="legend-text" x="743" y="580">Blue Hill Blueberry Muffin</text>
+<circle cx="728" cy="604" r="8" fill="#dc2626"/><text class="marker-number" x="728" y="604.5">19</text><text class="legend-text" x="743" y="608">Relief Harbor Pain Reliever</text>
+<circle cx="728" cy="632" r="8" fill="#dc2626"/><text class="marker-number" x="728" y="632.5">20</text><text class="legend-text" x="743" y="636">Calm Tide Antacid</text>
+<circle cx="728" cy="660" r="8" fill="#0891b2"/><text class="marker-number" x="728" y="660.5">21</text><text class="legend-text" x="743" y="664">PocketSoft Facial Tissues</text>
+<circle cx="728" cy="688" r="8" fill="#475569"/><text class="marker-number" x="728" y="688.5">22</text><text class="legend-text" x="743" y="692">ClearPath USB-C Charging Cable</text>
+<circle cx="728" cy="716" r="8" fill="#475569"/><text class="marker-number" x="728" y="716.5">23</text><text class="legend-text" x="743" y="720">North Current AA Batteries</text>
+<circle cx="728" cy="744" r="8" fill="#7c3aed"/><text class="marker-number" x="728" y="744.5">24</text><text class="legend-text" x="743" y="748">Fresh Basin Liquid Laundry Wash</text>
+<rect class="store-outline" x="70" y="70" width="605.0" height="715.0"/>
+<text class="orientation" x="372.5" y="40">REAR OF STORE</text>
+<text class="orientation" x="372.5" y="820.0">FRONT / CHECKOUT</text>
+</svg>

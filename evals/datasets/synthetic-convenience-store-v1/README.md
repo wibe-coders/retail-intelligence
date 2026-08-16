@@ -15,11 +15,19 @@ all fixture bounds are explicit modeling choices.
 - `inventory.json` contains one SKU-lot record per row.
 - `images/` contains one checksummed 512 × 512 PNG per SKU.
 - `IMAGE_PROMPTS.md` records the final image-generation prompt set.
+- `floor-map.svg` is the deterministic, scalable top-down map.
+- `floor-map.html` adds selectable markers and product details without external dependencies.
 
 Run the integrity, geometry, date, and image checks from the repository root:
 
 ```bash
 python3 scripts/validate_synthetic_inventory.py
+```
+
+Regenerate both floor-map outputs from the repository root:
+
+```bash
+python3 -m scripts.render_synthetic_floor_map
 ```
 
 ## Coordinate model
@@ -34,6 +42,10 @@ python3 scripts/validate_synthetic_inventory.py
 Positions are inside the fixture named by `fixture_id`; they are not camera-calibration output. A
 `facing_vector` indicates the direction the package front faces. `shelf_level` is one-based within
 its fixture and is descriptive, not a globally shared height.
+
+The floor map projects `[x, y, z]` to `[x, y]`, with the rear at the top. It draws exact x/y stacks
+from lower to higher z, so the highest item remains visible. Empty fixtures and two-dimensional
+entrance/circulation polygons provide context without claiming they contain inventory.
 
 ## Inventory record
 

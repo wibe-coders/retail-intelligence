@@ -22,6 +22,12 @@
   "source_note": "The authored layout is inspired by one uncalibrated fisheye convenience-store image. Coordinates and dimensions are synthetic, not measurements or recovered geometry. No source pixels, logos, or product identities are reused in the generated item images.",
   "fixtures": [
     {
+      "fixture_id": "left-cold",
+      "zone_id": "refrigerated",
+      "name": "Left-wall glass-door cooler bank",
+      "bounds_m": [[0.0, 1.8, 0.05], [0.85, 12.1, 2.35]]
+    },
+    {
       "fixture_id": "rear-cold",
       "zone_id": "refrigerated",
       "name": "Rear glass-door cooler bank",
@@ -40,6 +46,12 @@
       "bounds_m": [[3.25, 4.65, 0.0], [4.3, 11.35, 1.75]]
     },
     {
+      "fixture_id": "gondola-c",
+      "zone_id": "center-dry-goods",
+      "name": "Center gondola C",
+      "bounds_m": [[5.2, 4.65, 0.0], [6.25, 11.35, 1.75]]
+    },
+    {
       "fixture_id": "checkout-rack",
       "zone_id": "checkout-impulse",
       "name": "Customer-side checkout rack",
@@ -56,6 +68,26 @@
       "zone_id": "health-household",
       "name": "Right-wall health and household shelving",
       "bounds_m": [[9.75, 4.8, 0.05], [10.85, 11.7, 2.1]]
+    },
+    {
+      "fixture_id": "prepared-food",
+      "zone_id": "prepared-food",
+      "name": "Prepared food and coffee counter",
+      "bounds_m": [[7.0, 10.65, 0.0], [9.55, 12.45, 2.2]]
+    }
+  ],
+  "layout_features": [
+    {
+      "feature_id": "entrance",
+      "feature_type": "entrance",
+      "name": "Entrance and exit",
+      "footprint_m": [[8.6, 0.0], [10.4, 0.0], [10.4, 0.25], [8.6, 0.25]]
+    },
+    {
+      "feature_id": "front-circulation",
+      "feature_type": "circulation",
+      "name": "Front and right-side circulation",
+      "footprint_m": [[6.55, 0.25], [10.75, 0.25], [10.75, 4.6], [9.45, 4.6], [9.45, 10.4], [6.55, 10.4]]
     }
   ]
 }
