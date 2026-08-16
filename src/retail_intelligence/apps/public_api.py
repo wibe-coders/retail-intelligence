@@ -3,7 +3,6 @@
 from dataclasses import dataclass
 from pathlib import Path
 
-from ..domain.media import Source
 from ..domain.query import Answer
 from ..pipelines.vertical_slice import VerticalSlice
 
@@ -34,7 +33,10 @@ class PublicApi:
         self._storage = storage
         self._vertical_slice = vertical_slice
 
-    def ask(self, auth: AuthorizationContext, source: Source, question: str) -> Answer:
+    def ask(self, auth: AuthorizationContext, source_id: str, question: str) -> Answer:
+        source = self._storage.get_source(source_id)
+        if source is None:
+            raise LookupError("source not found")
         self._authorize(auth, source.reference.store_id)
         return self._vertical_slice.ask(source, question)
 
@@ -49,7 +51,14 @@ class PublicApi:
         window = self._storage.get_evidence_window(evidence.evidence_window_id)
         if window is None or window.source != evidence.source:
             raise LookupError("cited evidence is unavailable")
-        path = Path(evidence.media_locator)
+        sources = self._storage.find_sources(
+            evidence.source.store_id,
+            evidence.source.camera_id,
+            evidence.source.recording_id,
+        )
+        if len(sources) != 1 or sources[0].media_locator != evidence.media_locator:
+            raise LookupError("cited source is unavailable")
+        path = Path(sources[0].media_locator)
         if not path.is_file():
             raise LookupError("cited media is unavailable")
         return AuthorizedClip(

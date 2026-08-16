@@ -9,18 +9,21 @@ check. It is a process-local acceptance fixture, not the production web server o
 
 `VerticalSlice.process` rejects missing files and checksum mismatches. The source checksum, UTC
 range, pipeline version, and configuration determine the run, window, and observation identifiers.
-A replay of a succeeded run returns its existing status without invoking a model or adding an
-evidence or index record. Status exposes the terminal job state, window count, index count, and the
+A replay of a succeeded run restores a missing index entry from the stored observation without
+invoking a model or adding an evidence record. It fails visibly if a succeeded job has lost its
+evidence or observation. Status exposes the terminal job state, window count, index count, and the
 window's index state.
 
-`VerticalSlice.ask` searches only observations for the requested source. A supported answer stores
+The public query accepts a registered source identifier rather than caller-supplied source metadata.
+`VerticalSlice.ask` searches only observations for that source. A supported answer stores
 a citation containing the camera and half-open UTC range. If retrieval or the answer adapter has no
 support, it returns an `unsupported` abstention. The fixture models are deterministic: the caption
 adapter returns configured text and the answer adapter can only repeat retrieved evidence.
 
 `PublicApi.get_citation_clip` is the public evidence boundary. It resolves the durable citation and
-window, checks that the caller has access to the cited store, and then reads the local MP4. The API
-does not accept a media path from the caller. Citation identifiers are locators, not authorization.
+window and registered source, checks that the caller has access to the cited store, and then reads
+the local MP4. The API does not accept a media path from the caller and rejects a citation whose
+locator differs from the registered source. Citation identifiers are locators, not authorization.
 
 ## Cloud verification
 
@@ -57,7 +60,8 @@ DGX Spark target passed.
 ## Acceptance cases
 
 - A checksum mismatch or non-file source fails before registration.
-- Reprocessing cannot duplicate the evidence window, observation, index record, or pipeline run.
+- Reprocessing cannot duplicate the evidence window, observation, index record, or pipeline run;
+  it restores a missing index record from stored evidence without rerunning caption inference.
 - Supported answers cite a camera and UTC range tied to the indexed evidence window.
 - Unsupported questions abstain rather than composing text.
 - Clip bytes are reachable through the store-authorized public API and not from a caller-supplied

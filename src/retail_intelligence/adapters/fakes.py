@@ -7,8 +7,10 @@ from ..domain.media import Source
 class FixedCaptionModel:
     def __init__(self, caption: str) -> None:
         self._caption = caption
+        self.call_count = 0
 
     def caption(self, source: Source, window_id: str) -> str:
+        self.call_count += 1
         return self._caption
 
 
