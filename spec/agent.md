@@ -45,23 +45,13 @@ contracts; adapters implement external ports. Domain code imports no web framewo
 database client, or NVIDIA service client.
 
 ```text
-apps/
-  web/                 Browser UI: query, evidence playback, camera and job status
-services/
-  api/                 Only public boundary; auth, authorization, validation, rate limits
-  worker/              Runs bounded, retryable analysis and indexing jobs
-domain/
-  media/               Camera, recording, clip, time range, zone
-  intelligence/        Observation, track, event, metric, insight, evidence
-  query/               Question, filters, answer, citation, abstention
-pipelines/
-  ingest/              RTSP/file input, recording, clock and camera metadata
-  analyze/             Detection, tracking, embedding, captioning, event derivation
-  index/               Persist searchable text, vectors, attributes, and provenance
-  answer/              Retrieve, rank, compose, verify, and cite
-adapters/
-  nvidia/              VSS, VIOS, RT-CV, RT-VLM, RT-Embedding, and local NIM clients
-  storage/             Video, relational metadata, search/vector index, optional message bus
+src/
+  retail_intelligence/ Python package root
+    apps/               Browser and service entry points
+    services/           API and worker orchestration
+    domain/             Media, intelligence, and query contracts
+    pipelines/          Ingest, analyze, index, and answer flows
+    adapters/           NVIDIA and storage integrations
 ops/
   dgx-spark/           Pinned images, Compose, resource profiles, volumes, health checks
 evals/
@@ -70,6 +60,9 @@ evals/
 tests/                 Cross-package contract and end-to-end tests
 spec/                  Product, contracts, decisions, and operating requirements
 ```
+
+`src/` is the only application source root. Tests, scripts, specifications, samples, and operations
+remain top-level repository concerns rather than importable application packages.
 
 Model names, databases, and brokers are adapter choices. Do not expose their response shapes above
 the adapter boundary.

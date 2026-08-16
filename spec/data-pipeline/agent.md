@@ -145,16 +145,17 @@ explicit gap or partial record.
 
 ### Implemented contract
 
-`retail_intelligence/inference_budget.py` evaluates final model-input dimensions and the actual
+`src/retail_intelligence/inference_budget.py` evaluates final model-input dimensions and the actual
 selected frame count against this equation and range. Inputs must be positive. Its immutable result
 reports the computed token count, whether the request is accepted, and `below_minimum` or
 `above_maximum` when rejected.
 
-`retail_intelligence/ports/caption.py` defines framework-independent request, preprocessing, client,
-and stage-outcome contracts. `retail_intelligence/adapters/nvidia/caption.py` selects frames evenly
-without duplication, rejects an invalid planned budget before preprocessing, and checks the realized
-tensor dimensions and frame count before inference. Missing source frames produce a partial outcome;
-no frames produce a gap. A preprocessor that adds frames is rejected as partial evidence.
+`src/retail_intelligence/ports/caption.py` defines framework-independent request, preprocessing,
+client, and stage-outcome contracts. `src/retail_intelligence/adapters/nvidia/caption.py` selects
+frames evenly without duplication, rejects an invalid planned budget before preprocessing, and
+checks the realized tensor dimensions and frame count before inference. Missing source frames
+produce a partial outcome; no frames produce a gap. A preprocessor that adds frames is rejected as
+partial evidence.
 
 The executable checks are in `tests/test_inference_budget.py` and `tests/test_caption_adapter.py`.
 

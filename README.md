@@ -37,8 +37,11 @@ task-specific recommendations. It does not authorize dataset use or redistributi
 Run the complete test suite with:
 
 ```bash
-python3 -m unittest discover -s tests -v
+PYTHONPATH=src python3 -m unittest discover -s tests -v
 ```
+
+Application packages live under `src/`; repository commands must add that directory to the Python
+import path until the project gains an installable package manifest.
 
 ## Implement Linear issues with Codex cloud
 
