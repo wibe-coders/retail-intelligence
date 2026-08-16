@@ -1,38 +1,37 @@
 # RET-56 DGX Spark RT-VLM smoke test
 
 Test date: **2026-08-16 UTC**
-Result: **PASS for the repository one-file vertical slice with live RT-VLM inference**
+Result: **PASS for approved-file validation and standalone RT-VLM file inference**
 
 ## What this test proves
 
-The repository-owned runner processed the approved MP4 through both the live NVIDIA service and the
-repository's application flow on the DGX Spark.
+This test proves that one approved repository video can be validated, uploaded to the standalone
+NVIDIA RT-VLM service on a DGX Spark, decoded and sampled for the configured inference budget, and
+captioned twice by a local Cosmos3 Nano Reasoner without restarting the service.
 
 ```text
 approved local MP4
   -> repository checksum, metadata, full-decode, sampling, and token checks
-  -> repository RT-VLM adapter: upload -> caption -> delete
-  -> standalone Cosmos3 Nano Reasoner: one 12-second / 80-frame / 448x448 request
-  -> repository source registration and one deterministic evidence window
-  -> caption observation with exact model and service provenance
-  -> process-local evidence storage and index
-  -> supported question with camera/UTC citation
-  -> byte-identical authorized clip retrieval and cross-store denial
-  -> identical replay without a second inference call
+  -> RT-VLM file upload
+  -> one 12-second inference chunk covering the 10.777-second video
+  -> 80 evenly spaced 448x448 frames / 7,840 visual tokens
+  -> local Cosmos3 Nano Reasoner inference
+  -> timestamped caption response
+  -> repeat on the same service instance
+  -> delete the uploaded service copy
 ```
 
-The gate crossed three boundaries:
+The run crossed both relevant boundaries:
 
-1. `scripts/preflight_smoke_video.py` verified the immutable fixture, full decode, sample
-   feasibility, and 7,840-token budget.
-2. `RTVLMFileCaptionModel` called `POST /v1/files`, `POST /v1/generate_captions`, and
-   `DELETE /v1/files/{id}` itself. The service reported 80 frames and returned a non-empty caption.
-3. `VerticalSlice` stored and indexed that real caption. `PublicApi` returned a cited copy of the
-   registered MP4 to the allowed store and denied another store.
+1. `scripts/preflight_smoke_video.py` validated the repository fixture and its planned inference
+   input.
+2. RT-VLM accepted the file through `POST /v1/files` and returned non-empty captions through
+   `POST /v1/generate_captions`.
 
-This remains a bounded one-file gate. Storage and indexing are process-local, and the answer adapter
-can only repeat retrieved evidence. The test does not prove durable database recovery, production
-semantic retrieval, continuous RTSP ingestion, RT-CV integration, or the four-hour full-stack soak.
+This is not evidence that the complete application pipeline is production-ready. It did not run
+the durable `VerticalSlice`, evidence indexing, source-scoped question answering, RTSP recovery,
+or the four-hour full-stack soak required by the specifications. It validates the real local video
+and VLM boundary that the fake-adapter tests do not cover.
 
 ## Tested system
 
@@ -58,16 +57,18 @@ this report does not estimate it.
 
 The repository fixture is `samples/hong-kong-passageway.mp4`.
 
-| Property | Expected and observed value |
-|---|---|
-| SHA-256 | `8fef7d87a037714d2fc97f19faeac28a3ea41912d00fcced7032cc0674153dd4` |
-| Encoding | H.264, YUV 4:2:0 |
-| Encoded size | 960x540 |
-| Frame rate | 30000/1001 FPS |
-| Duration | 10.777433 seconds |
-| Decoded frames | 323, all distinct |
-| Sample | 80 unique frames spanning decoded indices 0 through 322 |
-| Inference input | 448x448, 80 frames, 7,840 visual tokens |
+| Property | Basis | Value |
+|---|---|---|
+| SHA-256 | Expected fixture identity and verified preflight result | `8fef7d87a037714d2fc97f19faeac28a3ea41912d00fcced7032cc0674153dd4` |
+| Encoding | Observed by preflight | H.264, YUV 4:2:0 |
+| Encoded size | Observed by preflight | 960x540 |
+| Frame rate | Observed by preflight | 30000/1001 FPS |
+| Duration | Observed by preflight | 10.777433 seconds |
+| Decoded frames | Observed by full decode | 323, all distinct |
+| Sample feasibility | Verified by preflight | 80 unique frames spanning decoded indices 0 through 322 |
+| RT-VLM frame count | Observed in the caption response | 80 |
+| RT-VLM dimensions | Service configuration | 448x448 |
+| Visual-token budget | Calculated from configured dimensions and observed frame count | 7,840 |
 
 Run the immutable fixture check from the retail-intelligence checkout:
 
@@ -201,29 +202,7 @@ printf 'Model: %s\n' "$MODEL_ID"
 curl -fsS "$BASE_URL/v1/version" | jq
 ```
 
-### 4. Run the repository end-to-end gate
-
-From the retail-intelligence checkout, pass the already loaded key to the repository adapter:
-
-```bash
-export RTVI_VLM_BASE_URL="$BASE_URL"
-export RTVI_VLM_API_KEY="$NGC_CLI_API_KEY"
-PYTHONPATH=src python3 scripts/run_dgx_e2e.py
-unset RTVI_VLM_API_KEY
-```
-
-The command first prints the five fixture `PASS` lines, then one sanitized JSON result. It fails
-unless the live upload, 80-frame caption, uploaded-copy deletion, storage, indexing, supported and
-unsupported answers, citation, authorized clip, access denial, and no-inference replay checks all
-pass. It does not print service upload identifiers or the API key.
-
-The live API request and cleanup contract also has credential-free unit coverage:
-
-```bash
-PYTHONPATH=src python3 -m unittest tests.test_rt_vlm_file_caption_model -v
-```
-
-### 5. Optional raw-API repeatability check
+### 4. Upload and caption the approved video twice
 
 Set the checkout path and upload the file:
 
@@ -286,31 +265,13 @@ curl -fsS -X DELETE "$BASE_URL/v1/files/$FILE_ID" \
 
 ## Observed results
 
-The repository end-to-end runner passed against the already-ready service:
-
-| Repository gate | Observed result |
-|---|---|
-| Live caption request | PASS; 6.431019 seconds, 80 reported frames |
-| Service upload cleanup | PASS; deletion confirmed |
-| Pipeline and index | PASS; `succeeded`, `indexed`, one evidence window, one index record |
-| Idempotent replay | PASS; model call count remained one |
-| Evidence query | PASS; one supported cited answer and one unsupported abstention |
-| Authorized cited clip | PASS; 1,022,054 bytes and approved SHA-256 |
-| Cross-store access | PASS; denied |
-| Stored provenance | PASS; exact model ID and RT-VLM release 3.2.1 |
-
-The live repository path stored this caption:
-
-> A person is walking away down a long, well-lit corridor with reflective floors and glass
-> storefronts on both sides. The individual maintains a steady pace, moving further into the distance.
-
-The earlier raw-API repeatability check remains useful as service evidence. The service reached ready
-in 211 seconds after the model was cached and the memory setting was reduced to 0.3. It remained
-healthy for both raw calls.
+The service reached ready in 211 seconds after the model was cached and the memory setting was
+reduced to 0.3. It remained healthy for both calls.
 
 | Check | Result |
 |---|---|
 | Health | PASS; `docker-rtvi-server-1` healthy on `8018->8000` |
+| RT-VLM reported frames | PASS; 80 frames in the caption response |
 | First inference | PASS; 9.328898 seconds |
 | Second inference | PASS; 9.200470 seconds |
 | Second run without restart | PASS |

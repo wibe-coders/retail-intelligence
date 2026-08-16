@@ -85,43 +85,6 @@ class VerticalSliceTests(unittest.TestCase):
         self.assertEqual(recovered.index_count, 1)
         self.assertEqual(self.caption_model.call_count, 1)
 
-    def test_model_and_pipeline_provenance_are_stored_from_live_adapter_contract(self) -> None:
-        model = FixedCaptionModel(
-            "A person walks through a passageway.",
-            model="nim_nvidia_cosmos3-nano-reasoner_bf16-final",
-            model_version="3.2.1",
-            vendor_output_reference="vendor-output://rt-vlm/caption-one",
-        )
-        pipeline = VerticalSlice(
-            self.storage,
-            self.index,
-            model,
-            EvidenceOnlyAnswerModel(),
-            pipeline_version="ret56-dgx-e2e-v1",
-            configuration={
-                "window_seconds": 12,
-                "caption_prompt_revision": "ret56-visible-actions-v1",
-            },
-        )
-
-        status = pipeline.process(self.source, tuple(range(10)))
-        observations = self.storage.find_observations(
-            self.source.reference,
-            status.pipeline_run.time_range,
-        )
-
-        self.assertEqual(status.pipeline_run.pipeline_version, "ret56-dgx-e2e-v1")
-        self.assertEqual(len(observations), 1)
-        self.assertEqual(
-            observations[0].context.provenance.model,
-            "nim_nvidia_cosmos3-nano-reasoner_bf16-final",
-        )
-        self.assertEqual(observations[0].context.provenance.model_version, "3.2.1")
-        self.assertEqual(
-            observations[0].vendor_output_reference,
-            "vendor-output://rt-vlm/caption-one",
-        )
-
     def test_processing_rejects_a_checksum_that_does_not_match_the_file(self) -> None:
         bad_source = Source(
             self.source.source_id, self.source.reference, self.source.media_locator,
