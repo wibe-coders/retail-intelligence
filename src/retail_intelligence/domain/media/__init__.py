@@ -117,15 +117,16 @@ class Source(DomainModel):
     height: int
     nominal_frame_rate: float
     retention_class: RetentionClass
-    checksum: str = "unspecified"
-    frame_count: int | None = None
+    checksum: str | None = None
+    frame_range: FrameRange | None = None
     clock: SourceClock | None = None
 
     def __post_init__(self) -> None:
         require_text(self.source_id, "source_id")
         require_text(self.media_locator, "media_locator")
         require_text(self.codec, "codec")
-        require_text(self.checksum, "checksum")
+        if self.checksum is not None:
+            require_text(self.checksum, "checksum")
         require_non_negative_integer(self.width, "source width")
         require_non_negative_integer(self.height, "source height")
         if (
@@ -136,8 +137,8 @@ class Source(DomainModel):
             or self.nominal_frame_rate <= 0
         ):
             raise ValueError("source dimensions and frame rate must be positive")
-        if self.frame_count is not None:
-            require_non_negative_integer(self.frame_count, "frame_count")
+        if self.frame_range is not None and not isinstance(self.frame_range, FrameRange):
+            raise ValueError("frame_range must be FrameRange")
         if self.clock is not None and not isinstance(self.clock, SourceClock):
             raise ValueError("clock must be SourceClock")
         if not isinstance(self.retention_class, RetentionClass):
@@ -165,7 +166,6 @@ class EvidenceWindow(DomainModel):
         require_non_negative_integer(self.observed_frame_count, "observed_frame_count")
         if not isinstance(self.completeness, Completeness):
             object.__setattr__(self, "completeness", Completeness(self.completeness))
-
 
         if self.completeness is Completeness.COMPLETE and (
             self.expected_frame_count == 0
